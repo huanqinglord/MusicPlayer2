@@ -236,6 +236,7 @@
     <ClInclude Include="AboutDlg.h" />
     <ClInclude Include="AcceleratorRes.h" />
     <ClInclude Include="AddToPlaylistDlg.h" />
+    <ClInclude Include="MyGroupsDlg.h" />
     <ClInclude Include="AllMediaDlg.h" />
     <ClInclude Include="AppearanceSettingDlg.h" />
     <ClInclude Include="AudioCommon.h" />
@@ -610,6 +611,7 @@
     <ClCompile Include="MenuMgr.cpp" />
     <ClCompile Include="MiniModeUserUi.cpp" />
     <ClCompile Include="MoreRecentItemDlg.cpp" />
+    <ClCompile Include="MyGroupsDlg.cpp" />
     <ClCompile Include="PropertyAdvancedDlg.cpp" />
     <ClCompile Include="PropertyAlbumCoverDlg.cpp" />
     <ClCompile Include="PropertyDlg.cpp" />
@@ -735,6 +737,7 @@
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="MusicPlayer2.rc" />
+    <ResourceCompile Include="MyGroups.rc" />
   </ItemGroup>
   <ItemGroup>
     <None Include="..\LICENSE" />

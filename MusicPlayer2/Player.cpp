@@ -1003,7 +1003,8 @@ void CPlayer::SaveRecentInfoToFiles(bool save_playlist)
         list_item.contain_sub_folder = m_contain_sub_folder;
     }
     list_item.sort_mode = m_sort_mode;
-    list_item.last_track = GetCurrentSongInfo();
+    if (!GetCurrentSongInfo().file_path.empty())
+        list_item.last_track = GetCurrentSongInfo();
     list_item.last_position = GetCurrentPosition();
     list_item.total_time = m_total_time;
     list_item.total_num = song_num;

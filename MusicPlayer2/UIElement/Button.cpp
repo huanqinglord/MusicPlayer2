@@ -104,6 +104,8 @@ void UiElement::Button::FromString(const std::string& key_type)
         key = CPlayerUIBase::BTN_FAVOURITE;
     else if (key_type == "mediaLib")
         key = CPlayerUIBase::BTN_MEDIA_LIB;
+    else if (key_type == "myGroups")
+        key = CPlayerUIBase::BTN_MY_GROUPS;
     else if (key_type == "showPlaylist")
         key = CPlayerUIBase::BTN_SHOW_PLAYLIST;
     else if (key_type == "addToPlaylist")

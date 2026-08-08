@@ -127,6 +127,7 @@ public:
         BTN_NEXT,               //下一曲
         BTN_SHOW_PLAYLIST,      //显示/隐藏播放列表
         BTN_MEDIA_LIB,          //媒体库
+        BTN_MY_GROUPS,          //我的分组（使用媒体库播放列表作为逻辑分组）
         BTN_FULL_SCREEN_TITLEBAR, //标题栏上的全屏显示按钮
         BTN_FULL_SCREEN,        //全屏显示按钮
         BTN_MENU_TITLEBAR,      //标题栏上的主菜单按钮

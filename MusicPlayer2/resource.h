@@ -223,6 +223,17 @@
 #define IDR_UI1                         589
 #define IDR_UI2                         590
 #define IDR_STRING_TABLE                591
+#define IDD_MY_GROUPS_DIALOG            694
+#define IDC_MY_GROUP_LIST               1387
+#define IDC_MY_GROUP_SONG_LIST          1388
+#define IDC_MY_GROUP_SEARCH             1389
+#define IDC_MY_GROUP_NEW                1390
+#define IDC_MY_GROUP_RENAME             1391
+#define IDC_MY_GROUP_DELETE             1392
+#define IDC_MY_GROUP_ADD                1393
+#define IDC_MY_GROUP_REMOVE             1394
+#define IDC_MY_GROUP_ADD_PLAYLIST       1395
+#define IDC_MY_GROUP_PLAY               1396
 #define IDI_UP_D                        592
 #define IDR_MINI_UI0                    593
 #define IDI_ARTIST                      594
@@ -1094,9 +1105,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        694
+#define _APS_NEXT_RESOURCE_VALUE        695
 #define _APS_NEXT_COMMAND_VALUE         33513
-#define _APS_NEXT_CONTROL_VALUE         1387
+#define _APS_NEXT_CONTROL_VALUE         1397
 #define _APS_NEXT_SYMED_VALUE           101
 #endif
 #endif

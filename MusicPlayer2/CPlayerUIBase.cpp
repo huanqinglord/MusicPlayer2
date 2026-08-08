@@ -13,6 +13,7 @@
 #include "UIElement/SearchBox.h"
 #include "PlayerFormulaHelper.h"
 #include "WinVersionHelper.h"
+#include "MyGroupsDlg.h"
 
 bool CPlayerUIBase::m_show_ui_tip_info = false;
 
@@ -391,6 +392,13 @@ bool CPlayerUIBase::ButtonClicked(BtnKey btn_type, const UIButton& btn)
         theApp.m_pMainWnd->SendMessage(WM_COMMAND, ID_MEDIA_LIB);
         return true;
 
+    case BTN_MY_GROUPS:
+    {
+        CMyGroupsDlg dlg(m_pMainWnd);
+        dlg.DoModal();
+        return true;
+    }
+
     case BTN_FAVOURITE:
         theApp.m_pMainWnd->SendMessage(WM_COMMAND, ID_ADD_REMOVE_FROM_FAVOURITE);
         return true;
@@ -739,6 +747,8 @@ IconMgr::IconType CPlayerUIBase::GetBtnIconType(BtnKey key)
         return IconMgr::IconType::IT_Playlist;
     case BTN_MEDIA_LIB:
         return IconMgr::IconType::IT_Media_Lib;
+    case BTN_MY_GROUPS:
+        return IconMgr::IconType::IT_Playlist;
     case BTN_FULL_SCREEN:
     case BTN_FULL_SCREEN_TITLEBAR:
         if (m_ui_data.full_screen)
@@ -841,6 +851,7 @@ std::wstring CPlayerUIBase::GetButtonText(BtnKey key_type) const
     case BTN_NEXT: return theApp.m_str_table.LoadText(L"UI_TIP_BTN_NEXT");
     case BTN_SHOW_PLAYLIST: return theApp.m_str_table.LoadText(L"UI_TIP_BTN_PLAYLIST_SHOW_HIDE");
     case BTN_MEDIA_LIB: return theApp.m_str_table.LoadText(L"UI_TIP_BTN_MEDIA_LIB");
+    case BTN_MY_GROUPS: return theApp.m_str_table.LoadText(L"UI_TIP_BTN_MY_GROUPS");
     case BTN_FULL_SCREEN: return theApp.m_str_table.LoadText(m_ui_data.full_screen ? L"UI_TIP_BTN_FULL_SCREEN_EXIT" : L"UI_TIP_BTN_FULL_SCREEN");
     case BTN_MENU: return theApp.m_str_table.LoadText(L"UI_TIP_BTN_MAIN_MENU");
     case BTN_FAVOURITE: return theApp.m_str_table.LoadText(L"UI_TIP_BTN_FAVOURITE");
@@ -2619,6 +2630,8 @@ std::wstring CPlayerUIBase::GetItemTooltip(int tooltip_index)
     // 媒体库
     case BTN_MEDIA_LIB:
         return theApp.m_str_table.LoadText(L"UI_TIP_BTN_MEDIA_LIB") + GetCmdShortcutKeyForTooltips(ID_MEDIA_LIB).GetString();
+    case BTN_MY_GROUPS:
+        return theApp.m_str_table.LoadText(L"UI_TIP_BTN_MY_GROUPS");
     // 查找歌曲
     case BTN_FIND:
         return theApp.m_str_table.LoadText(L"UI_TIP_BTN_FIND_SONGS") + GetCmdShortcutKeyForTooltips(ID_FIND).GetString();

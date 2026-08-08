@@ -32,6 +32,7 @@
         <progressBar show_play_time="true" play_time_both_side="false" margin-left="4" margin-right="4"/>
         <button key="repeatMode" width="24" height="24" margin="2"/>
         <button key="mediaLib" width="24" height="24" margin="2"/>
+        <button key="myGroups" width="24" height="24" margin="2"/>
         <volume show_text="false" width="24" height="24" margin="2"/>
         <button key="showPlaylist" width="24" height="24" margin="2"/>
       </horizontalLayout>
