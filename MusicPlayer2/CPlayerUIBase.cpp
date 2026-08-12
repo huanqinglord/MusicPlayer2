@@ -1138,17 +1138,16 @@ void CPlayerUIBase::DrawUIButton(const CRect& rect, UIButton& btn, IconMgr::Icon
     btn.rect = rect;
 
     CRect rc_tmp = rect;
-    if (btn.pressed && btn.enable)
-        rc_tmp.MoveToXY(rect.left + theApp.DPI(1), rect.top + theApp.DPI(1));
 
     //rc_tmp.DeflateRect(DPI(2), DPI(2));
     //m_draw.SetDrawArea(rc_tmp);
 
     //绘制的是否为关闭按钮（关闭按钮需要特别处理）
     bool is_close_btn = (&btn == &m_buttons[BTN_CLOSE] || &btn == &m_buttons[BTN_APP_CLOSE]);
+    const bool is_primary_play = (icon_type == IconMgr::IT_Play || icon_type == IconMgr::IT_Pause);
 
     //绘制背景
-    if (btn.enable && (btn.pressed || btn.hover || checked || btn_background))
+    if (btn.enable && (btn.pressed || btn.hover || checked || btn_background || is_primary_play))
     {
         BYTE alpha;
         if (!is_close_btn && IsDrawBackgroundAlpha())
@@ -1161,14 +1160,16 @@ void CPlayerUIBase::DrawUIButton(const CRect& rect, UIButton& btn, IconMgr::Icon
             if (btn.pressed)
                 back_color = RGB(173, 17, 29);
             else
-                back_color = RGB(232, 17, 35);
+                back_color = m_colors.color_danger;
         }
+        else if (is_primary_play)
+            back_color = m_colors.color_accent;
         else
         {
             if (btn.pressed)
-                back_color = m_colors.color_button_pressed;
+                back_color = m_colors.color_surface_pressed;
             else if (btn.hover)
-                back_color = m_colors.color_button_hover;
+                back_color = m_colors.color_surface_hover;
             else if (checked)
                 back_color = m_colors.color_button_checked;
             else
@@ -1198,7 +1199,7 @@ void CPlayerUIBase::DrawUIButton(const CRect& rect, UIButton& btn, IconMgr::Icon
         }
 
         //绘制图标
-        IconMgr::IconStyle icon_style = (is_close_btn && (btn.pressed || btn.hover)) ? IconMgr::IconStyle::IS_OutlinedLight : IconMgr::IconStyle::IS_Auto;
+        IconMgr::IconStyle icon_style = ((is_close_btn && (btn.pressed || btn.hover)) || is_primary_play) ? IconMgr::IconStyle::IS_OutlinedLight : IconMgr::IconStyle::IS_Auto;
         IconMgr::IconSize icon_size = big_icon ? IconMgr::IconSize::IS_DPI_20 : IconMgr::IconSize::IS_DPI_16;
         DrawUiIcon(rect_icon, icon_type, icon_style, icon_size);
     }
@@ -1232,9 +1233,6 @@ void CPlayerUIBase::DrawTextButton(CRect rect, UIButton& btn, LPCTSTR text, bool
 {
     if (btn.enable)
     {
-        if (btn.pressed)
-            rect.MoveToXY(rect.left + theApp.DPI(1), rect.top + theApp.DPI(1));
-
         //绘制的是否为关闭按钮（关闭按钮需要特别处理）
         bool is_close_btn = (&btn == &m_buttons[BTN_CLOSE] || &btn == &m_buttons[BTN_APP_CLOSE]);
 
@@ -1261,11 +1259,11 @@ void CPlayerUIBase::DrawTextButton(CRect rect, UIButton& btn, LPCTSTR text, bool
             {
                 if (btn.pressed)
                 {
-                    background_color = m_colors.color_button_pressed;
+                    background_color = m_colors.color_surface_pressed;
                 }
                 else if (btn.hover)
                 {
-                    background_color = m_colors.color_button_hover;
+                    background_color = m_colors.color_surface_hover;
                 }
                 else if (checked)
                 {
@@ -1597,11 +1595,11 @@ double CPlayerUIBase::GetScrollTextPixel(bool slower)
 
 int CPlayerUIBase::CalculateRoundRectRadius(const CRect& rect)
 {
-    int radius{ min(rect.Width(), rect.Height()) / 6 };
-    if (radius < DPI(3))
-        radius = DPI(3);
-    if (radius > DPI(8))
-        radius = DPI(8);
+    int radius{ min(rect.Width(), rect.Height()) / 4 };
+    if (radius < DPI(4))
+        radius = DPI(4);
+    if (radius > DPI(10))
+        radius = DPI(10);
     return radius;
 }
 

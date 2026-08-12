@@ -1,23 +1,23 @@
 <root name="%(TXT_UI_NAME_SIMPLE_UI)" xmlns="https://github.com/zhongyang219/MusicPlayer2/skin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://github.com/zhongyang219/MusicPlayer2/skin ./skin.xsd"
        index="7">
   <ui type="big">
-    <verticalLayout margin="4">
+    <verticalLayout margin="12">
       <horizontalLayout>
-        <verticalLayout margin="42" margin-top="56" margin-bottom="20">
+        <verticalLayout margin="56" margin-top="64" margin-bottom="28">
           <albumCover square="true"/>
-          <horizontalLayout height="32" margin-top="8">
-            <button key="favorite" width="24" height="24" margin="4"/>
-            <button key="info" width="24" height="24" margin="4"/>
-            <button key="addToPlaylist" width="24" height="24" margin="4"/>
-            <button key="skin" width="24" height="24" margin="4"/>
+          <horizontalLayout height="44" margin-top="16">
+            <button key="favorite" width="28" height="28" margin="6"/>
+            <button key="info" width="28" height="28" margin="6"/>
+            <button key="addToPlaylist" width="28" height="28" margin="6"/>
+            <button key="skin" width="28" height="28" margin="6"/>
           </horizontalLayout>
         </verticalLayout>
-        <verticalLayout margin="4">
-          <text type="title" style="scroll" margin-top="8%" height="28" font_size="12"/>
-          <text type="artist" style="scroll" height="24" font_size="10"/>
-          <text type="album" style="scroll" height="24" font_size="10"/>
-          <lyrics margin-top="8"/>
-          <horizontalLayout height="28">
+        <verticalLayout margin="16">
+          <text type="title" style="scroll" margin-top="8%" height="40" font_size="15"/>
+          <text type="artist" style="scroll" height="30" font_size="11"/>
+          <text type="album" style="scroll" height="26" font_size="10"/>
+          <lyrics margin-top="16"/>
+          <horizontalLayout height="36">
             <placeHolder/>
             <button key="desktopLyric" width="24" height="24" margin="2"/>
             <button key="lyricTranslate" width="24" height="24" margin="2"/>
@@ -25,22 +25,22 @@
           </horizontalLayout>
         </verticalLayout>
       </horizontalLayout>
-      <horizontalLayout margin="4" height="42">
-        <button key="previous" width="36" height="36" bigIcon="true" margin="2"/>
-        <button key="playPause" width="36" height="36" bigIcon="true" margin="2"/>
-        <button key="next" width="36" height="36" bigIcon="true" margin="2"/>
-        <progressBar show_play_time="true" play_time_both_side="false" margin-left="4" margin-right="4"/>
-        <button key="repeatMode" width="24" height="24" margin="2"/>
-        <button key="mediaLib" width="24" height="24" margin="2"/>
-        <button key="myGroups" width="24" height="24" margin="2"/>
-        <volume show_text="false" width="24" height="24" margin="2"/>
-        <button key="showPlaylist" width="24" height="24" margin="2"/>
+      <horizontalLayout margin-top="16" height="60">
+        <button key="previous" width="44" height="44" bigIcon="true" margin="8"/>
+        <button key="playPause" width="52" height="52" bigIcon="true" margin="4"/>
+        <button key="next" width="44" height="44" bigIcon="true" margin="8"/>
+        <progressBar show_play_time="true" play_time_both_side="false" margin-left="16" margin-right="16"/>
+        <button key="repeatMode" width="28" height="28" margin="4"/>
+        <button key="mediaLib" width="28" height="28" margin="4"/>
+        <button key="myGroups" width="28" height="28" margin="4"/>
+        <volume show_text="false" width="28" height="28" margin="4"/>
+        <button key="showPlaylist" width="28" height="28" margin="4"/>
       </horizontalLayout>
     </verticalLayout>
   </ui>
   
   <ui type="narrow">
-    <verticalLayout margin="4">
+    <verticalLayout margin="12">
       <stackElement show_indicator="true">
         <verticalLayout margin-bottom="4">
           <albumCover square="true" margin-left="40" margin-top="40" margin-right="40"  margin-bottom="8"/>
@@ -73,10 +73,10 @@
         </verticalLayout>
       </stackElement>
       <progressBar show_play_time="true" play_time_both_side="true" margin-left="8" margin-right="8" margin-top="16" height="22"/>
-      <horizontalLayout margin="4" height="36">
-        <button key="previous" width="36" height="36" bigIcon="true" margin="2"/>
-        <button key="playPause" width="36" height="36" bigIcon="true" margin="2"/>
-        <button key="next" width="36" height="36" bigIcon="true" margin="2"/>
+      <horizontalLayout margin-top="12" height="56">
+        <button key="previous" width="40" height="40" bigIcon="true" margin="8"/>
+        <button key="playPause" width="48" height="48" bigIcon="true" margin="4"/>
+        <button key="next" width="40" height="40" bigIcon="true" margin="8"/>
         <placeHolder/>
         <button key="desktopLyric" width="24" height="24" margin="2"/>
         <button key="repeatMode" width="24" height="24" margin="2"/>
@@ -87,7 +87,7 @@
   </ui>
   
   <ui type="small">
-    <verticalLayout>
+    <verticalLayout margin="12">
       <horizontalLayout margin="16" max-height="96">
         <albumCover square="true" margin-right="12" width="96"/>
         <verticalLayout>
@@ -103,10 +103,10 @@
         </verticalLayout>
       </horizontalLayout>
       <progressBar show_play_time="true" play_time_both_side="true" margin-left="8" margin-right="8" margin-top="4" height="18"/>
-      <horizontalLayout margin="4" height="40">
-        <button key="previous" width="36" height="36" bigIcon="true" margin="2"/>
-        <button key="playPause" width="36" height="36" bigIcon="true" margin="2"/>
-        <button key="next" width="36" height="36" bigIcon="true" margin="2"/>
+      <horizontalLayout margin-top="12" height="56">
+        <button key="previous" width="40" height="40" bigIcon="true" margin="8"/>
+        <button key="playPause" width="48" height="48" bigIcon="true" margin="4"/>
+        <button key="next" width="40" height="40" bigIcon="true" margin="8"/>
         <placeHolder/>
         <button key="desktopLyric" width="24" height="24" margin="2"/>
         <button key="repeatMode" width="24" height="24" margin="2"/>

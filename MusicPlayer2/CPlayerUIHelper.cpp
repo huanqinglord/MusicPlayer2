@@ -19,27 +19,32 @@ UIColors CPlayerUIHelper::GetUIColors(bool dark, bool draw_alpha)
     //if (theApp.m_app_setting_data.dark_mode)
     if (dark)
     {
-        colors.color_text = ColorTable::WHITE;
-        colors.color_text_lable = theApp.m_app_setting_data.theme_color.light2;
-        colors.color_text_2 = theApp.m_app_setting_data.theme_color.light1;
-        colors.color_text_heighlight = theApp.m_app_setting_data.theme_color.light2;
-        colors.color_text_disabled = GRAY(200);
+        colors.color_text = RGB(255, 255, 255);
+        colors.color_text_lable = RGB(200, 198, 196);
+        colors.color_text_2 = RGB(161, 159, 157);
+        colors.color_text_heighlight = RGB(255, 255, 255);
+        colors.color_text_disabled = RGB(117, 117, 117);
         if (draw_alpha)
         {
-            colors.color_back = GRAY(64);
-            colors.color_panel_back = GRAY(72);
+            colors.color_back = RGB(36, 36, 36);
+            colors.color_panel_back = RGB(48, 48, 48);
         }
         else
         {
-            colors.color_back = GRAY(48);
-            colors.color_panel_back = GRAY(56);
+            colors.color_back = RGB(32, 32, 32);
+            colors.color_panel_back = RGB(44, 44, 44);
         }
 
         colors.color_lyric_back = theApp.m_app_setting_data.theme_color.dark3;
         if (draw_alpha)
             colors.color_control_bar_back = theApp.m_app_setting_data.theme_color.dark2;
         else
-            colors.color_control_bar_back = GRAY(64);
+            colors.color_control_bar_back = RGB(44, 44, 44);
+        colors.color_surface_hover = RGB(56, 56, 56);
+        colors.color_surface_pressed = RGB(62, 62, 62);
+        colors.color_border = RGB(60, 60, 60);
+        colors.color_accent = theApp.m_app_setting_data.theme_color.original_color;
+        colors.color_danger = RGB(196, 43, 28);
         colors.color_spectrum = theApp.m_app_setting_data.theme_color.light2;
         colors.color_spectrum_cover = theApp.m_app_setting_data.theme_color.original_color;
         colors.color_progress_back = theApp.m_app_setting_data.theme_color.dark1;
@@ -66,18 +71,23 @@ UIColors CPlayerUIHelper::GetUIColors(bool dark, bool draw_alpha)
     }
     else
     {
-        colors.color_text = theApp.m_app_setting_data.theme_color.dark2;
-        colors.color_text_lable = theApp.m_app_setting_data.theme_color.original_color;
-        colors.color_text_2 = theApp.m_app_setting_data.theme_color.light1;
-        colors.color_text_heighlight = theApp.m_app_setting_data.theme_color.dark1;
-        colors.color_text_disabled = GRAY(160);
-        colors.color_back = ColorTable::WHITE;
+        colors.color_text = RGB(26, 26, 26);
+        colors.color_text_lable = RGB(96, 94, 92);
+        colors.color_text_2 = RGB(117, 117, 117);
+        colors.color_text_heighlight = RGB(26, 26, 26);
+        colors.color_text_disabled = RGB(161, 159, 157);
+        colors.color_back = RGB(243, 243, 243);
         if (draw_alpha)
-            colors.color_panel_back = ColorTable::WHITE;
+            colors.color_panel_back = RGB(251, 251, 251);
         else
-            colors.color_panel_back = GRAY(240);
+            colors.color_panel_back = RGB(251, 251, 251);
         colors.color_lyric_back = theApp.m_app_setting_data.theme_color.light3;
         colors.color_control_bar_back = theApp.m_app_setting_data.theme_color.light3;
+        colors.color_surface_hover = RGB(245, 245, 245);
+        colors.color_surface_pressed = RGB(238, 238, 238);
+        colors.color_border = RGB(229, 229, 229);
+        colors.color_accent = theApp.m_app_setting_data.theme_color.original_color;
+        colors.color_danger = RGB(196, 43, 28);
         colors.color_spectrum = theApp.m_app_setting_data.theme_color.original_color;
         colors.color_spectrum_cover = theApp.m_app_setting_data.theme_color.original_color;
         colors.color_progress_back = theApp.m_app_setting_data.theme_color.light2_5;

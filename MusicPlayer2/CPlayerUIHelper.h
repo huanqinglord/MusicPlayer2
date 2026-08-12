@@ -12,6 +12,11 @@ struct UIColors     //界面颜色
     COLORREF color_panel_back;          //面板的背景色
     COLORREF color_lyric_back;          //歌词界面背景颜色
     COLORREF color_control_bar_back;    //控制条背景颜色
+    COLORREF color_surface_hover;       //Fluent 控件悬停表面颜色
+    COLORREF color_surface_pressed;     //Fluent 控件按下表面颜色
+    COLORREF color_border;              //Fluent 控件低对比度边框颜色
+    COLORREF color_accent;              //强调色，用于进度和选中状态
+    COLORREF color_danger;              //危险操作颜色
     COLORREF color_spectrum;            //频谱分析柱形的颜色
     COLORREF color_spectrum_cover;      //有专辑封面时的频谱分析柱形的颜色
     COLORREF color_progress_back;       //进度条的背景颜色
