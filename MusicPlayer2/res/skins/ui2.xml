@@ -9,7 +9,6 @@
         <!--第1页-->
         <horizontalLayout>
           <verticalLayout margin-bottom="12">
-            <albumCover square="true" margin="8"/>
             <text type="title" alignment="center" style="scroll" height="26" font_size="10" />
             <text type="artist" alignment="center" style="scroll" height="20" font_size="9" margin-top="0" />
             <spectrum draw_reflex="true" fixed_width="true" alignment="center" height="15%" margin-top="-8" min-height="24" max-height="80"/>
@@ -20,7 +19,6 @@
         <horizontalLayout>
           <!--左侧部分-->
           <verticalLayout margin-bottom="12">
-            <albumCover square="true" margin="8"/>
             <text type="title" alignment="center" style="scroll" height="26" font_size="10" />
             <text type="artist" alignment="center" style="scroll" height="20" font_size="9" margin-top="0" />
             <lyrics hide-height="200" height="18%" margin-top="4"/>
@@ -57,27 +55,25 @@
           </verticalLayout>
         </horizontalLayout>
       </stackElement>
-      <!--工具栏-->
-      <rectangle height="24" margin="4" margin-bottom="0">
-        <horizontalLayout>
-          <button key="repeatMode" width="20" height="20" margin="2"/>
-          <button key="settings" width="20" height="20" margin="2"/>
-          <button key="equalizer" width="20" height="20" margin="2"/>
-          <button key="skin" width="20" height="20" margin="2"/>
-          <button key="miniMode" width="20" height="20" margin="2" hide-width="174"/>
-          <button key="info" width="20" height="20" margin="2" hide-width="198"/>
-          <button key="find" width="20" height="20" margin="2" hide-width="222"/>
-          <button key="lyricTranslate" width="20" height="20" margin="2" hide-width="246"/>
-          <button key="darkLightMode" width="20" height="20" margin="2" hide-width="294"/>
-          <button key="abRepeat" width="20" height="20" margin="2" hide-width="318"/>
-          <button key="desktopLyric" width="20" height="20" margin="2" hide-width="270"/>
-          <placeHolder/>
-          <volume width="56" show_text="true"/>
-          <beatIndicator width="44" hide-width="368"/>
-        </horizontalLayout>
+      <!--底部播放控制区-->
+      <rectangle height="88" margin="4" no_corner_radius="true">
+        <verticalLayout margin="4">
+          <progressBar show_play_time="true" play_time_both_side="true" height="22" margin-left="8" margin-right="8"/>
+          <horizontalLayout height="56">
+            <button key="settings" width="28" height="28" margin="4"/>
+            <button key="equalizer" width="28" height="28" margin="4"/>
+            <button key="desktopLyric" width="28" height="28" margin="4"/>
+            <placeHolder/>
+            <button key="previous" width="40" height="40" bigIcon="true" margin="4"/>
+            <button key="playPause" width="48" height="48" bigIcon="true" margin="4"/>
+            <button key="next" width="40" height="40" bigIcon="true" margin="4"/>
+            <placeHolder/>
+            <button key="repeatMode" width="28" height="28" margin="4"/>
+            <volume show_text="false" width="28" height="28" margin="4"/>
+            <button key="showPlaylist" width="28" height="28" margin="4"/>
+          </horizontalLayout>
+        </verticalLayout>
       </rectangle>
-      <!--控制条-->
-      <classicalControlBar margin="4"/>
     </verticalLayout>
   </ui>
 
@@ -92,7 +88,6 @@
         <stackElement click_to_switch="false" show_indicator="true" margin-bottom="4">
           <!--第1页-->
           <verticalLayout margin-bottom="4">
-            <albumCover square="true" margin="8"/>
             <text type="title" alignment="center" style="scroll" height="26" font_size="10" />
             <text type="artist" alignment="center" style="scroll" height="20" font_size="9" margin-top="0" />
             <lyrics hide-height="200" height="18%" margin-top="4"/>
@@ -115,25 +110,24 @@
         </stackElement>
         <spectrum draw_reflex="true" fixed_width="true" alignment="center" height="15%" margin-top="-6" margin-bottom="-12" min-height="24" max-height="80"/>
       </verticalLayout>
-      <rectangle height="24" margin="4" margin-bottom="0">
-        <horizontalLayout>
-          <button key="repeatMode" width="20" height="20" margin="2"/>
-          <button key="settings" width="20" height="20" margin="2"/>
-          <button key="equalizer" width="20" height="20" margin="2"/>
-          <button key="skin" width="20" height="20" margin="2"/>
-          <button key="miniMode" width="20" height="20" margin="2" hide-width="174"/>
-          <button key="info" width="20" height="20" margin="2" hide-width="198"/>
-          <button key="find" width="20" height="20" margin="2" hide-width="222"/>
-          <button key="lyricTranslate" width="20" height="20" margin="2" hide-width="246"/>
-          <button key="darkLightMode" width="20" height="20" margin="2" hide-width="294"/>
-          <button key="abRepeat" width="20" height="20" margin="2" hide-width="318"/>
-          <button key="desktopLyric" width="20" height="20" margin="2" hide-width="270"/>
-          <placeHolder/>
-          <volume width="56" show_text="true"/>
-          <beatIndicator width="44" hide-width="368"/>
-        </horizontalLayout>
+      <rectangle height="88" margin="4" no_corner_radius="true">
+        <verticalLayout margin="4">
+          <progressBar show_play_time="true" play_time_both_side="true" height="22" margin-left="8" margin-right="8"/>
+          <horizontalLayout height="56">
+            <button key="settings" width="28" height="28" margin="4" hide-width="430"/>
+            <button key="equalizer" width="28" height="28" margin="4" hide-width="400"/>
+            <button key="desktopLyric" width="28" height="28" margin="4" hide-width="370"/>
+            <placeHolder/>
+            <button key="previous" width="40" height="40" bigIcon="true" margin="4"/>
+            <button key="playPause" width="48" height="48" bigIcon="true" margin="4"/>
+            <button key="next" width="40" height="40" bigIcon="true" margin="4"/>
+            <placeHolder/>
+            <button key="repeatMode" width="28" height="28" margin="4"/>
+            <volume show_text="false" width="28" height="28" margin="4"/>
+            <button key="showPlaylist" width="28" height="28" margin="4"/>
+          </horizontalLayout>
+        </verticalLayout>
       </rectangle>
-      <classicalControlBar margin="4"/>
     </verticalLayout>
   </ui>
 
@@ -168,25 +162,24 @@
           </verticalLayout>-->
       </horizontalLayout>
       <lyrics margin-left="8" margin-right="8" max-height="28" hide-height="224"/>
-      <rectangle height="24" margin="4" margin-bottom="0">
-        <horizontalLayout>
-          <button key="repeatMode" width="20" height="20" margin="2"/>
-          <button key="settings" width="20" height="20" margin="2"/>
-          <button key="equalizer" width="20" height="20" margin="2"/>
-          <button key="skin" width="20" height="20" margin="2"/>
-          <button key="miniMode" width="20" height="20" margin="2" hide-width="174"/>
-          <button key="info" width="20" height="20" margin="2" hide-width="198"/>
-          <button key="find" width="20" height="20" margin="2" hide-width="222"/>
-          <button key="lyricTranslate" width="20" height="20" margin="2" hide-width="246"/>
-          <button key="darkLightMode" width="20" height="20" margin="2" hide-width="294"/>
-          <button key="abRepeat" width="20" height="20" margin="2" hide-width="318"/>
-          <button key="desktopLyric" width="20" height="20" margin="2" hide-width="270"/>
-          <placeHolder/>
-          <volume width="56" show_text="true"/>
-          <beatIndicator width="44" hide-width="368"/>
-        </horizontalLayout>
+      <rectangle height="88" no_corner_radius="true">
+        <verticalLayout margin="4">
+          <progressBar show_play_time="true" play_time_both_side="true" height="22" margin-left="8" margin-right="8"/>
+          <horizontalLayout height="56">
+            <button key="settings" width="28" height="28" margin="4" hide-width="430"/>
+            <button key="equalizer" width="28" height="28" margin="4" hide-width="400"/>
+            <button key="desktopLyric" width="28" height="28" margin="4" hide-width="370"/>
+            <placeHolder/>
+            <button key="previous" width="40" height="40" bigIcon="true" margin="4"/>
+            <button key="playPause" width="48" height="48" bigIcon="true" margin="4"/>
+            <button key="next" width="40" height="40" bigIcon="true" margin="4"/>
+            <placeHolder/>
+            <button key="repeatMode" width="28" height="28" margin="4"/>
+            <volume show_text="false" width="28" height="28" margin="4"/>
+            <button key="showPlaylist" width="28" height="28" margin="4"/>
+          </horizontalLayout>
+        </verticalLayout>
       </rectangle>
-      <classicalControlBar margin-top="4"/>
     </verticalLayout>
 
   </ui>

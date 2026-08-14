@@ -19,6 +19,8 @@ namespace UiElement
         bool empty_btn{};               //是否为空白按钮（不绘制任何东西）
         Alignment align{ Alignment::LEFT };    //对齐方式
         bool btn_background{};          //按钮是否有背景
+        bool force_round_background{};  //是否强制使用圆形背景，不受全局圆角设置影响
+        IconMgr::IconSize icon_size{ IconMgr::IS_ALL }; //明确指定图标尺寸，IS_ALL表示沿用bigIcon设置
 
     public:
         CPlayerUIBase::BtnKey GetKey() const { return key; }

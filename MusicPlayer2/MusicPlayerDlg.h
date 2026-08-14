@@ -35,6 +35,8 @@
 
 #define WM_ALBUM_COVER_DOWNLOAD_COMPLETE (WM_USER+114)      //自动下载专辑封面和歌词完成时发出的消息
 
+class CMyGroupsDlg;
+
 // CMusicPlayerDlg 对话框
 class CMusicPlayerDlg : public CMainDialogBase
 {
@@ -59,6 +61,8 @@ public:
     void UiForceRefresh();      //通知UI线程强制刷新一次
     int GetUiRefreshInterval() const { return m_ui_refresh_interval; }
     void MouseWheelAdjustVolume(short zDelta);
+    void ToggleMyGroupsPage();
+    void HideMyGroupsPage();
 
     // 对话框数据
 #ifdef AFX_DESIGN_TIME
@@ -144,6 +148,7 @@ protected:
     CSoundEffectDlg* m_pSoundEffecDlg;      //音效设定对话框（非模态对话框）
     CFormatConvertDlg* m_pFormatConvertDlg;     //格式转换对话框（非模态对话框）
     CFloatPlaylistDlg* m_pFloatPlaylistDlg;     //浮动播放列表对话框
+    CMyGroupsDlg* m_pMyGroupsDlg{};              //主窗口拥有的“我的分组”覆盖页面
     CPoint m_float_playlist_pos{ INT_MAX, INT_MAX };                //浮动播放列表的位置
 
     CWinThread* m_pThread;      //执行在线查看的线程
@@ -213,6 +218,7 @@ private:
     void SetDrawAreaSize(int cx, int cy, int playlist_width);
     void SetAlwaysOnTop();
     void AdjustVolume(int step);
+    void ResizeMyGroupsPage();
 
     bool IsMainWindowPopupMenu() const;      //当前弹出的右键是主窗口右键菜单还是播放列表右键菜单
 

@@ -1286,6 +1286,12 @@
         <xs:documentation>按钮是否有背景。</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="iconSize" type="xs:integer" default="16"/>
+    <xs:attribute name="force_round_background" type="xs:boolean" default="false">
+      <xs:annotation>
+        <xs:documentation>强制按钮使用圆形背景，不受全局圆角设置影响。</xs:documentation>
+      </xs:annotation>
+    </xs:attribute>
     <xs:attributeGroup ref="sharedattr"></xs:attributeGroup>
   </xs:complexType>
   
@@ -1600,6 +1606,7 @@
         <xs:documentation>是否在音量图标旁边显示文本。</xs:documentation>
       </xs:annotation>
     </xs:attribute>
+    <xs:attribute name="iconSize" type="xs:integer" default="16"/>
     <xs:attribute name="adj_btn_on_top" type="xs:boolean" default="false">
       <xs:annotation>
         <xs:documentation> 点击音量图标后出现的音量调节按钮是否显示在音量图标的上方。默认显示在音量图标的下方。 </xs:documentation>

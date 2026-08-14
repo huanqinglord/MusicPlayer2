@@ -18,7 +18,7 @@ void UiElement::Volume::Draw()
     //绘制图标
     CRect rect_icon{ rect };
     rect_icon.right = rect_icon.left + rect_icon.Height();
-    ui->DrawUiIcon(rect_icon, ui->GetBtnIconType(CPlayerUIBase::BTN_VOLUME));
+    ui->DrawUiIcon(rect_icon, ui->GetBtnIconType(CPlayerUIBase::BTN_VOLUME), IconMgr::IS_Auto, icon_size);
 
     //绘制文本
     volume_text_displayed = false;
@@ -202,6 +202,14 @@ void UiElement::Volume::FromXmlNode(tinyxml2::XMLElement* xml_node)
     Element::FromXmlNode(xml_node);
     CTinyXml2Helper::GetElementAttributeBool(xml_node, "show_text", show_text);
     CTinyXml2Helper::GetElementAttributeBool(xml_node, "adj_btn_on_top", adj_btn_on_top);
+    int icon_size_value{};
+    CTinyXml2Helper::GetElementAttributeInt(xml_node, "iconSize", icon_size_value);
+    if (icon_size_value == 20)
+        icon_size = IconMgr::IS_DPI_20;
+    else if (icon_size_value == 24)
+        icon_size = IconMgr::IS_DPI_24;
+    else if (icon_size_value == 32)
+        icon_size = IconMgr::IS_DPI_32;
 }
 
 void UiElement::Volume::UpdateSliderValue()

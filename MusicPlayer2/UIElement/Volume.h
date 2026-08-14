@@ -29,6 +29,7 @@ namespace UiElement
 
     protected:
         bool show_text{ true };     //是否在音量图标旁边显示文本
+        IconMgr::IconSize icon_size{ IconMgr::IS_DPI_16 };
         bool adj_btn_on_top{ true };   //音量调节按钮是否显示在音量图标的上方
         bool m_show_volume_adj{ false };    //是否显示音量调节按钮
         CRect rect_volume_adj;

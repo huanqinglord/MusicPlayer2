@@ -150,6 +150,7 @@ public:
         IS_DPI_16_Full_Screen,
         IS_DPI_20,
         IS_DPI_20_Full_Screen,
+        IS_DPI_24,
         IS_DPI_32,
         IS_DPI_32_Full_Screen,
         IS_ORG_512,

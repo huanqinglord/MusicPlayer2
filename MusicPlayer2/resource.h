@@ -234,6 +234,7 @@
 #define IDC_MY_GROUP_REMOVE             1394
 #define IDC_MY_GROUP_ADD_PLAYLIST       1395
 #define IDC_MY_GROUP_PLAY               1396
+#define IDC_MY_GROUP_BACK               1397
 #define IDI_UP_D                        592
 #define IDR_MINI_UI0                    593
 #define IDI_ARTIST                      594

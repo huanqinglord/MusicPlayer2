@@ -36,6 +36,7 @@
 #include "UIPanel/SettingsPanel.h"
 #include "UIDialog/UITestDialog.h"
 #include "OpenUrlDlg.h"
+#include "MyGroupsDlg.h"
 
 #ifdef _DEBUG
 #define new DEBUG_NEW
@@ -101,6 +102,13 @@ CMusicPlayerDlg::~CMusicPlayerDlg()
     CCommon::DeleteModelessDialog(m_pSoundEffecDlg);
     CCommon::DeleteModelessDialog(m_pFormatConvertDlg);
     CCommon::DeleteModelessDialog(m_pFloatPlaylistDlg);
+    if (m_pMyGroupsDlg != nullptr)
+    {
+        if (m_pMyGroupsDlg->GetSafeHwnd() != nullptr)
+            m_pMyGroupsDlg->DestroyWindow();
+        delete m_pMyGroupsDlg;
+        m_pMyGroupsDlg = nullptr;
+    }
 }
 
 CMusicPlayerDlg* CMusicPlayerDlg::GetInstance()
@@ -368,8 +376,6 @@ void CMusicPlayerDlg::SaveConfig()
 {
     CIniHelper ini(theApp.m_config_path);
 
-    ini.WriteInt(L"config", L"window_width", m_window_width);
-    ini.WriteInt(L"config", L"window_hight", m_window_height);
     ini.WriteInt(L"config", L"transparency", theApp.m_app_setting_data.window_transparency);
     ini.WriteBool(L"config", L"narrow_mode", theApp.m_ui_data.narrow_mode);
     ini.WriteBool(L"config", L"show_translate", theApp.m_lyric_setting_data.show_translate);
@@ -572,8 +578,8 @@ void CMusicPlayerDlg::LoadConfig()
 {
     CIniHelper ini(theApp.m_config_path);
 
-    m_window_width = ini.GetInt(L"config", L"window_width", theApp.DPI(660));
-    m_window_height = ini.GetInt(L"config", L"window_hight", theApp.DPI(482));
+    m_window_width = -1;
+    m_window_height = -1;
     theApp.m_app_setting_data.window_transparency = ini.GetInt(L"config", L"transparency", 100);
     theApp.m_ui_data.narrow_mode = ini.GetBool(L"config", L"narrow_mode", false);
     theApp.m_lyric_setting_data.show_translate = ini.GetBool(L"config", L"show_translate", true);
@@ -741,13 +747,19 @@ void CMusicPlayerDlg::LoadConfig()
     theApp.m_play_setting_data.ffmpeg_core_enable_WASAPI_exclusive_mode = ini.GetBool(L"config", L"ffmpeg_core_enable_WASAPI_exclusive_mode", false);
     theApp.m_play_setting_data.ffmpeg_core_max_wait_time = ini.GetInt(L"config", L"ffmpeg_core_max_wait_time", 3000);
 
-    int ui_selected = ini.GetInt(L"config", L"UI_selected", 1);
+    int default_ui_selected = 1;
+    for (int i = 0; i < static_cast<int>(m_ui_list.size()); ++i)
+    {
+        if (m_ui_list[i] != nullptr && m_ui_list[i]->GetUiIndex() == 7)
+        {
+            default_ui_selected = i;
+            break;
+        }
+    }
+    int ui_selected = ini.GetInt(L"config", L"UI_selected", default_ui_selected);
     if (ui_selected < 0 || ui_selected >= static_cast<int>(m_ui_list.size()))
     {
-        if (m_ui_list.size() >= 2)
-            ui_selected = 1;
-        else
-            ui_selected = 0;
+        ui_selected = default_ui_selected;
     }
     SelectUi(ui_selected);
 
@@ -897,6 +909,69 @@ void CMusicPlayerDlg::SetDrawAreaSize(int cx, int cy, int playlist_width)
         }
     }
     m_ui_static_ctrl.MoveWindow(draw_rect);
+    theApp.m_ui_data.draw_area_width = draw_rect.Width();
+    theApp.m_ui_data.draw_area_height = draw_rect.Height();
+    m_ui_static_ctrl.RedrawWindow(nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+    RedrawWindow(nullptr, nullptr, RDW_INVALIDATE | RDW_ERASE | RDW_ALLCHILDREN);
+}
+
+void CMusicPlayerDlg::ToggleMyGroupsPage()
+{
+    if (m_pMyGroupsDlg != nullptr && m_pMyGroupsDlg->IsWindowVisible())
+    {
+        m_pMyGroupsDlg->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+        m_pMyGroupsDlg->SetFocus();
+        return;
+    }
+
+    if (theApp.m_ui_data.show_playlist)
+        ShowHidePlaylist();
+
+    if (m_pMyGroupsDlg == nullptr)
+    {
+        m_pMyGroupsDlg = new CMyGroupsDlg(this, true);
+        if (!m_pMyGroupsDlg->Create(IDD_MY_GROUPS_DIALOG, this))
+        {
+            delete m_pMyGroupsDlg;
+            m_pMyGroupsDlg = nullptr;
+            return;
+        }
+        m_pMyGroupsDlg->ModifyStyleEx(WS_EX_APPWINDOW, WS_EX_TOOLWINDOW);
+    }
+
+    ResizeMyGroupsPage();
+    m_pMyGroupsDlg->ShowWindow(SW_SHOW);
+    m_pMyGroupsDlg->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
+    m_pMyGroupsDlg->SetFocus();
+}
+
+void CMusicPlayerDlg::HideMyGroupsPage()
+{
+    if (m_pMyGroupsDlg != nullptr)
+        m_pMyGroupsDlg->ShowWindow(SW_HIDE);
+    m_ui_static_ctrl.SetFocus();
+    DrawInfo(true);
+}
+
+void CMusicPlayerDlg::ResizeMyGroupsPage()
+{
+    if (m_pMyGroupsDlg == nullptr || !m_pMyGroupsDlg->GetSafeHwnd())
+        return;
+
+    CRect client_rect;
+    m_ui_static_ctrl.GetClientRect(client_rect);
+    client_rect.top += m_layout.titlabar_height;
+
+    CUserUi* user_ui = dynamic_cast<CUserUi*>(m_pUI);
+    if (user_ui != nullptr)
+    {
+        std::shared_ptr<UiElement::Element> root = user_ui->GetCurrentTypeUi();
+        UiElement::Element* control_bar = root == nullptr ? nullptr : root->FindElement("simpleControlBar");
+        if (control_bar != nullptr && control_bar->GetRect().top > client_rect.top)
+            client_rect.bottom = control_bar->GetRect().top;
+    }
+    m_ui_static_ctrl.ClientToScreen(client_rect);
+    m_pMyGroupsDlg->MoveWindow(client_rect);
 }
 
 void CMusicPlayerDlg::SetAlwaysOnTop()
@@ -2203,13 +2278,30 @@ BOOL CMusicPlayerDlg::OnInitDialog()
     //设置桌面歌词窗口不透明度
     SetDesptopLyricTransparency();
 
-    //初始化窗口大小
-    //rect.right = m_window_width;
-    //rect.bottom = m_window_height;
-    if (m_window_height != -1 && m_window_width != -1)
+    //每次启动时根据鼠标所在显示器的工作区重新计算窗口大小，不恢复用户上次调整的尺寸
+    CPoint cursor_pos;
+    GetCursorPos(&cursor_pos);
+    HMONITOR monitor = MonitorFromPoint(cursor_pos, MONITOR_DEFAULTTOPRIMARY);
+    MONITORINFO monitor_info{};
+    monitor_info.cbSize = sizeof(monitor_info);
+    if (GetMonitorInfo(monitor, &monitor_info))
     {
-        //MoveWindow(rect);
-        SetWindowPos(nullptr, 0, 0, m_window_width, m_window_height, SWP_NOZORDER | SWP_NOMOVE);
+        CRect work_area{ monitor_info.rcWork };
+        const int edge_margin = theApp.DPI(48);
+        const int available_width = max(1, work_area.Width() - edge_margin * 2);
+        const int available_height = max(1, work_area.Height() - edge_margin * 2);
+
+        const int min_width = min(theApp.DPI(900), available_width);
+        const int max_width = min(theApp.DPI(1280), available_width);
+        const int min_height = min(theApp.DPI(600), available_height);
+        const int max_height = min(theApp.DPI(820), available_height);
+
+        m_window_width = min(max(work_area.Width() * 72 / 100, min_width), max_width);
+        m_window_height = min(max(work_area.Height() * 76 / 100, min_height), max_height);
+
+        const int window_x = work_area.left + (work_area.Width() - m_window_width) / 2;
+        const int window_y = work_area.top + (work_area.Height() - m_window_height) / 2;
+        SetWindowPos(nullptr, window_x, window_y, m_window_width, m_window_height, SWP_NOZORDER);
     }
 
     ShowTitlebar(theApp.m_app_setting_data.show_window_frame);
@@ -2449,6 +2541,7 @@ void CMusicPlayerDlg::OnSize(UINT nType, int cx, int cy)
             m_splitter_ctrl.Invalidate();
         }
         SetDrawAreaSize(cx, cy, CalculatePlaylistWidth(cx));
+        ResizeMyGroupsPage();
 
         if (nType == SIZE_RESTORED)
         {
@@ -6664,6 +6757,7 @@ void CMusicPlayerDlg::OnMove(int x, int y)
 
     //移动主窗口时同步移动浮动播放列表的位置
     MoveFloatPlaylistPos();
+    ResizeMyGroupsPage();
 }
 
 

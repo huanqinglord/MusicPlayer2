@@ -27,8 +27,8 @@ ALIASES = {
     "setting": "Settings", "close": "Dismiss", "delete": "Delete",
     "addtag": "Tag Multiple", "replacetag": "Tag", "deletetag": "Tag Dismiss",
     "add": "Add", "playlist_float": "Window New", "playlist_dock": "Window",
-    "playlist": "Text Bullet List", "播放列表": "Text Bullet List",
-    "media_lib": "Library", "menu": "Navigation", "heart": "Heart",
+    "playlist": "Text Bullet List Square", "播放列表": "Text Bullet List Square",
+    "media_lib": "Folder Multiple", "menu": "Navigation", "heart": "Heart",
     "favourite": "Heart", "skn": "Color", "skin": "Color",
     "曲目信息": "Info", "info": "Info", "karaoke": "Mic",
     "顺序播放": "Arrow Repeat All", "列表循环": "Arrow Repeat All",
@@ -141,6 +141,7 @@ def generate_ico(svg: Path, target: Path, color: str) -> None:
 def main() -> None:
     parser = argparse.ArgumentParser()
     parser.add_argument("--import-source", type=Path)
+    parser.add_argument("--only", nargs="*", default=[])
     args = parser.parse_args()
 
     rc = RC_PATH.read_text(encoding="utf-16")
@@ -156,6 +157,8 @@ def main() -> None:
         if any(item.lower() in filename.lower() for item in SKIP):
             continue
         semantic_key = f"{stem} {resource_id}"
+        if args.only and not any(token.lower() in semantic_key.lower() for token in args.only):
+            continue
         name = choose_icon(semantic_key)
         filled = "heart" in semantic_key.lower() or "select" in semantic_key.lower()
         resources.append((resource_id, filename, name, filled))

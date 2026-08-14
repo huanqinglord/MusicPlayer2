@@ -13,7 +13,6 @@
 #include "UIElement/SearchBox.h"
 #include "PlayerFormulaHelper.h"
 #include "WinVersionHelper.h"
-#include "MyGroupsDlg.h"
 
 bool CPlayerUIBase::m_show_ui_tip_info = false;
 
@@ -393,11 +392,9 @@ bool CPlayerUIBase::ButtonClicked(BtnKey btn_type, const UIButton& btn)
         return true;
 
     case BTN_MY_GROUPS:
-    {
-        CMyGroupsDlg dlg(m_pMainWnd);
-        dlg.DoModal();
+        if (CMusicPlayerDlg* main_dlg = CMusicPlayerDlg::GetInstance())
+            main_dlg->ToggleMyGroupsPage();
         return true;
-    }
 
     case BTN_FAVOURITE:
         theApp.m_pMainWnd->SendMessage(WM_COMMAND, ID_ADD_REMOVE_FROM_FAVOURITE);
@@ -748,7 +745,7 @@ IconMgr::IconType CPlayerUIBase::GetBtnIconType(BtnKey key)
     case BTN_MEDIA_LIB:
         return IconMgr::IconType::IT_Media_Lib;
     case BTN_MY_GROUPS:
-        return IconMgr::IconType::IT_Playlist;
+        return IconMgr::IconType::IT_Media_Lib;
     case BTN_FULL_SCREEN:
     case BTN_FULL_SCREEN_TITLEBAR:
         if (m_ui_data.full_screen)
@@ -1068,7 +1065,7 @@ void CPlayerUIBase::DrawRectangle(const CRect& rect, bool no_corner_radius, bool
         }
     }
 
-    if (!theApp.m_app_setting_data.button_round_corners || no_corner_radius)
+    if ((!theApp.m_app_setting_data.button_round_corners && theme_color) || no_corner_radius)
         m_draw.FillAlphaRect(rect, fill_color, alpha);
     else
     {
@@ -1133,7 +1130,7 @@ void CPlayerUIBase::DrawUIButton(const CRect& rect, BtnKey key_type, UIButton& b
     DrawUIButton(rect, btn, GetBtnIconType(key_type), big_icon, text, font_size, checked);
 }
 
-void CPlayerUIBase::DrawUIButton(const CRect& rect, UIButton& btn, IconMgr::IconType icon_type, bool big_icon, const std::wstring& text, int font_size, bool checked, Alignment align, bool btn_background)
+void CPlayerUIBase::DrawUIButton(const CRect& rect, UIButton& btn, IconMgr::IconType icon_type, bool big_icon, const std::wstring& text, int font_size, bool checked, Alignment align, bool btn_background, bool force_round_background, IconMgr::IconSize icon_size)
 {
     btn.rect = rect;
 
@@ -1175,7 +1172,9 @@ void CPlayerUIBase::DrawUIButton(const CRect& rect, UIButton& btn, IconMgr::Icon
             else
                 back_color = m_colors.color_button_back;
         }
-        if (!theApp.m_app_setting_data.button_round_corners)
+        if (force_round_background)
+            m_draw.DrawRoundRect(rc_tmp, back_color, min(rc_tmp.Width(), rc_tmp.Height()) / 2, alpha);
+        else if (!theApp.m_app_setting_data.button_round_corners)
             m_draw.FillAlphaRect(rc_tmp, back_color, alpha, true);
         else
             m_draw.DrawRoundRect(rc_tmp, back_color, CalculateRoundRectRadius(rc_tmp), alpha);
@@ -1200,8 +1199,10 @@ void CPlayerUIBase::DrawUIButton(const CRect& rect, UIButton& btn, IconMgr::Icon
 
         //绘制图标
         IconMgr::IconStyle icon_style = ((is_close_btn && (btn.pressed || btn.hover)) || is_primary_play) ? IconMgr::IconStyle::IS_OutlinedLight : IconMgr::IconStyle::IS_Auto;
-        IconMgr::IconSize icon_size = big_icon ? IconMgr::IconSize::IS_DPI_20 : IconMgr::IconSize::IS_DPI_16;
-        DrawUiIcon(rect_icon, icon_type, icon_style, icon_size);
+        IconMgr::IconSize resolved_icon_size = icon_size == IconMgr::IS_ALL
+            ? (big_icon ? IconMgr::IconSize::IS_DPI_20 : IconMgr::IconSize::IS_DPI_16)
+            : icon_size;
+        DrawUiIcon(rect_icon, icon_type, icon_style, resolved_icon_size);
     }
 
     //绘制文本

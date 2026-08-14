@@ -52,7 +52,7 @@ void UiElement::Button::Draw()
             std::wstring text;
             if (show_text)
                 text = GetDisplayText();
-            ui->DrawUIButton(rect, m_btn, GetBtnIconType(), big_icon, text, font_size, false, align, btn_background);
+            ui->DrawUIButton(rect, m_btn, GetBtnIconType(), big_icon, text, font_size, false, align, btn_background, force_round_background, icon_size);
         }
         break;
         }
@@ -327,6 +327,16 @@ void UiElement::Button::FromXmlNode(tinyxml2::XMLElement* xml_node)
     FromString(str_key);
     std::string str_big_icon = CTinyXml2Helper::ElementAttribute(xml_node, "bigIcon");
     big_icon = CTinyXml2Helper::StringToBool(str_big_icon.c_str());
+    int icon_size_value{};
+    CTinyXml2Helper::GetElementAttributeInt(xml_node, "iconSize", icon_size_value);
+    if (icon_size_value == 20)
+        icon_size = IconMgr::IS_DPI_20;
+    else if (icon_size_value == 24)
+        icon_size = IconMgr::IS_DPI_24;
+    else if (icon_size_value == 32)
+        icon_size = IconMgr::IS_DPI_32;
+    else if (icon_size_value == 16)
+        icon_size = IconMgr::IS_DPI_16;
     CTinyXml2Helper::GetElementAttributeBool(xml_node, "show_text", show_text);
     CTinyXml2Helper::GetElementAttributeInt(xml_node, "font_size", font_size);
     std::string str_text = CTinyXml2Helper::ElementAttribute(xml_node, "text");
@@ -348,6 +358,7 @@ void UiElement::Button::FromXmlNode(tinyxml2::XMLElement* xml_node)
     else if (str_alignment == "center")
         align = Alignment::CENTER;
     CTinyXml2Helper::GetElementAttributeBool(xml_node, "btn_background", btn_background);
+    CTinyXml2Helper::GetElementAttributeBool(xml_node, "force_round_background", force_round_background);
 }
 
 std::wstring UiElement::Button::GetDisplayText() const

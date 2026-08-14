@@ -6,14 +6,16 @@ class CMyGroupsDlg : public CBaseDialog
 {
     DECLARE_DYNAMIC(CMyGroupsDlg)
 public:
-    explicit CMyGroupsDlg(CWnd* pParent = nullptr);
+    explicit CMyGroupsDlg(CWnd* pParent = nullptr, bool embedded = false);
     virtual ~CMyGroupsDlg();
+    virtual void OnCancel() override;
 protected:
     struct SongGroup { std::wstring name; std::vector<SongKey> songs; };
     CListCtrl m_group_list;
     CListCtrl m_song_list;
     CEdit m_search_edit;
     CToolTipCtrl m_tooltip;
+    bool m_embedded{};
     std::vector<SongGroup> m_groups;
     std::vector<SongInfo> m_current_songs;
     std::vector<int> m_visible_song_indices;
@@ -38,6 +40,8 @@ protected:
     afx_msg void OnRenameGroup();
     afx_msg void OnDeleteGroup();
     afx_msg void OnSearchChanged();
+    afx_msg void OnBack();
+    afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnGroupClicked(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnSongClicked(NMHDR* pNMHDR, LRESULT* pResult);
     DECLARE_MESSAGE_MAP()

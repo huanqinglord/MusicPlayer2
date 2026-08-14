@@ -6,11 +6,12 @@
 #include "Player.h"
 #include "SelectItemDlg.h"
 #include "SongDataManager.h"
+#include "MusicPlayerDlg.h"
 
 IMPLEMENT_DYNAMIC(CMyGroupsDlg, CBaseDialog)
-CMyGroupsDlg::CMyGroupsDlg(CWnd* pParent) : CBaseDialog(IDD_MY_GROUPS_DIALOG, pParent) {}
+CMyGroupsDlg::CMyGroupsDlg(CWnd* pParent, bool embedded) : CBaseDialog(IDD_MY_GROUPS_DIALOG, pParent), m_embedded(embedded) {}
 CMyGroupsDlg::~CMyGroupsDlg() = default;
-CString CMyGroupsDlg::GetDialogName() const { return L"MyGroupsDlg"; }
+CString CMyGroupsDlg::GetDialogName() const { return m_embedded ? CString() : CString(L"MyGroupsDlg"); }
 
 bool CMyGroupsDlg::InitializeControls()
 {
@@ -28,15 +29,18 @@ void CMyGroupsDlg::DoDataExchange(CDataExchange* pDX)
 }
 
 BEGIN_MESSAGE_MAP(CMyGroupsDlg, CBaseDialog)
+    ON_BN_CLICKED(IDC_MY_GROUP_BACK, &CMyGroupsDlg::OnBack)
     ON_EN_CHANGE(IDC_MY_GROUP_SEARCH, &CMyGroupsDlg::OnSearchChanged)
     ON_NOTIFY(NM_CLICK, IDC_MY_GROUP_LIST, &CMyGroupsDlg::OnGroupClicked)
     ON_NOTIFY(NM_CLICK, IDC_MY_GROUP_SONG_LIST, &CMyGroupsDlg::OnSongClicked)
+    ON_WM_SIZE()
 END_MESSAGE_MAP()
 
 BOOL CMyGroupsDlg::OnInitDialog()
 {
     CBaseDialog::OnInitDialog();
     SetIcon(IconMgr::IconType::IT_Playlist, FALSE);
+    SetButtonIcon(IDC_MY_GROUP_BACK, IconMgr::IconType::IT_Arrow_Left);
     m_group_list.SetExtendedStyle(m_group_list.GetExtendedStyle() | LVS_EX_FULLROWSELECT);
     m_group_list.InsertColumn(0, L"", LVCFMT_LEFT, theApp.DPI(105));
     m_group_list.InsertColumn(1, L"", LVCFMT_CENTER, theApp.DPI(24));
@@ -47,6 +51,7 @@ BOOL CMyGroupsDlg::OnInitDialog()
     m_song_list.InsertColumn(1, L"\u6587\u4ef6\u8def\u5f84", LVCFMT_LEFT, theApp.DPI(340));
     m_song_list.InsertColumn(2, L"\u64cd\u4f5c", LVCFMT_CENTER, theApp.DPI(150));
     m_tooltip.Create(this, TTS_ALWAYSTIP | TTS_NOPREFIX);
+    m_tooltip.AddTool(GetDlgItem(IDC_MY_GROUP_BACK), theApp.m_str_table.LoadText(L"UI_TIP_BTN_BACK").c_str());
     m_tooltip.AddTool(&m_group_list, L"");
     m_tooltip.AddTool(&m_song_list, L"");
     LoadGroups();
@@ -56,6 +61,11 @@ BOOL CMyGroupsDlg::OnInitDialog()
 
 BOOL CMyGroupsDlg::PreTranslateMessage(MSG* pMsg)
 {
+    if (m_embedded && pMsg->message == WM_KEYDOWN && pMsg->wParam == VK_ESCAPE)
+    {
+        OnBack();
+        return TRUE;
+    }
     if (pMsg->message == WM_MOUSEMOVE)
     {
         CWnd* source = CWnd::FromHandle(pMsg->hwnd);
@@ -67,6 +77,50 @@ BOOL CMyGroupsDlg::PreTranslateMessage(MSG* pMsg)
     }
     m_tooltip.RelayEvent(pMsg);
     return CBaseDialog::PreTranslateMessage(pMsg);
+}
+
+void CMyGroupsDlg::OnCancel()
+{
+    if (m_embedded)
+        OnBack();
+    else
+        CBaseDialog::OnCancel();
+}
+
+void CMyGroupsDlg::OnBack()
+{
+    if (CMusicPlayerDlg* main_dlg = CMusicPlayerDlg::GetInstance())
+        main_dlg->HideMyGroupsPage();
+}
+
+void CMyGroupsDlg::OnSize(UINT nType, int cx, int cy)
+{
+    CBaseDialog::OnSize(nType, cx, cy);
+    if (!m_group_list.GetSafeHwnd() || cx <= 0 || cy <= 0)
+        return;
+
+    const int margin = theApp.DPI(12);
+    const int gap = theApp.DPI(12);
+    const int header_height = theApp.DPI(32);
+    const int list_top = margin + header_height + gap;
+    const int group_width = max(theApp.DPI(180), cx * 28 / 100);
+    const int content_height = max(1, cy - list_top - margin);
+
+    if (CWnd* back = GetDlgItem(IDC_MY_GROUP_BACK))
+        back->MoveWindow(margin, margin, theApp.DPI(40), header_height);
+    m_search_edit.MoveWindow(margin + group_width + gap, margin, max(1, cx - group_width - gap - margin * 2), header_height);
+    m_group_list.MoveWindow(margin, list_top, group_width, content_height);
+    m_song_list.MoveWindow(margin + group_width + gap, list_top, max(1, cx - group_width - gap - margin * 2), content_height);
+
+    CRect song_client_rect;
+    m_song_list.GetClientRect(&song_client_rect);
+    const int song_width = song_client_rect.Width();
+    if (song_width > 0)
+    {
+        m_song_list.SetColumnWidth(0, song_width * 35 / 100);
+        m_song_list.SetColumnWidth(1, song_width * 45 / 100);
+        m_song_list.SetColumnWidth(2, song_width * 20 / 100);
+    }
 }
 
 void CMyGroupsDlg::LoadGroups()

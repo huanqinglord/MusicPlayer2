@@ -63,6 +63,7 @@ int IconMgr::GetIconWidth(IconSize size)
     {
     case IS_DPI_16: case IS_DPI_16_Full_Screen: width = theApp.DPI(16); break;
     case IS_DPI_20: case IS_DPI_20_Full_Screen: width = theApp.DPI(20); break;
+    case IS_DPI_24: width = theApp.DPI(24); break;
     case IS_DPI_32: case IS_DPI_32_Full_Screen: width = theApp.DPI(32); break;
     case IS_ORG_512: width = 512; break;
     default: width = theApp.DPI(16); break;  // 系统默认小图标大小 SM_CXICON * SM_CYICON
