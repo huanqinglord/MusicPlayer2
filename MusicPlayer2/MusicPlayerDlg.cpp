@@ -919,8 +919,7 @@ void CMusicPlayerDlg::ToggleMyGroupsPage()
 {
     if (m_pMyGroupsDlg != nullptr && m_pMyGroupsDlg->IsWindowVisible())
     {
-        m_pMyGroupsDlg->SetWindowPos(&wndTop, 0, 0, 0, 0, SWP_NOMOVE | SWP_NOSIZE);
-        m_pMyGroupsDlg->SetFocus();
+        HideMyGroupsPage();
         return;
     }
 
@@ -929,6 +928,7 @@ void CMusicPlayerDlg::ToggleMyGroupsPage()
 
     if (m_pMyGroupsDlg == nullptr)
     {
+        m_ui_static_ctrl.ModifyStyle(0, WS_CLIPSIBLINGS);
         m_pMyGroupsDlg = new CMyGroupsDlg(this, true);
         if (!m_pMyGroupsDlg->Create(IDD_MY_GROUPS_DIALOG, this))
         {
@@ -936,7 +936,6 @@ void CMusicPlayerDlg::ToggleMyGroupsPage()
             m_pMyGroupsDlg = nullptr;
             return;
         }
-        m_pMyGroupsDlg->ModifyStyleEx(WS_EX_APPWINDOW, WS_EX_TOOLWINDOW);
     }
 
     ResizeMyGroupsPage();
@@ -971,6 +970,7 @@ void CMusicPlayerDlg::ResizeMyGroupsPage()
             client_rect.bottom = control_bar->GetRect().top;
     }
     m_ui_static_ctrl.ClientToScreen(client_rect);
+    ScreenToClient(client_rect);
     m_pMyGroupsDlg->MoveWindow(client_rect);
 }
 

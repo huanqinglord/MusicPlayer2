@@ -14,9 +14,13 @@ protected:
     CListCtrl m_group_list;
     CListCtrl m_song_list;
     CEdit m_search_edit;
+    CStatic m_group_title;
+    CStatic m_group_count;
     CToolTipCtrl m_tooltip;
+    CBrush m_background_brush;
     bool m_embedded{};
     std::vector<SongGroup> m_groups;
+    std::vector<SongKey> m_manual_songs;
     std::vector<SongInfo> m_current_songs;
     std::vector<int> m_visible_song_indices;
     virtual CString GetDialogName() const override;
@@ -30,6 +34,10 @@ protected:
     void LoadCurrentGroupSongs();
     void ShowSongs();
     void UpdateButtons();
+    void AddSelectedSongs(int group_row);
+    void AddFolderToGroup(int group_row);
+    void ShowGroupMenu(int group_row);
+    void ShowSongMenu(int song_index);
     std::vector<SongInfo> GetPlayableSongs(const std::vector<SongInfo>& songs) const;
     std::vector<SongInfo> GetSongsForGroup(int group_row);
     void AddSongsToGroup(const std::vector<SongInfo>& songs);
@@ -41,6 +49,13 @@ protected:
     afx_msg void OnDeleteGroup();
     afx_msg void OnSearchChanged();
     afx_msg void OnBack();
+    afx_msg void OnPlayAll();
+    afx_msg void OnAddFiles();
+    afx_msg void OnAddFolder();
+    afx_msg BOOL OnEraseBkgnd(CDC* pDC);
+    afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
+    afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
+    afx_msg void OnTimer(UINT_PTR nIDEvent);
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnGroupClicked(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnSongClicked(NMHDR* pNMHDR, LRESULT* pResult);
