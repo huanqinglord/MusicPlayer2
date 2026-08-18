@@ -16,8 +16,11 @@ protected:
     CEdit m_search_edit;
     CStatic m_group_title;
     CStatic m_group_count;
+    CStatic m_empty_state;
     CToolTipCtrl m_tooltip;
     CBrush m_background_brush;
+    CImageList m_group_row_height_image;
+    int m_group_hover_row{ -1 };
     bool m_embedded{};
     std::vector<SongGroup> m_groups;
     std::vector<SongKey> m_manual_songs;
@@ -56,6 +59,8 @@ protected:
     afx_msg HBRUSH OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor);
     afx_msg void OnShowWindow(BOOL bShow, UINT nStatus);
     afx_msg void OnTimer(UINT_PTR nIDEvent);
+    afx_msg void OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT lpDrawItemStruct);
+    afx_msg void OnGroupCustomDraw(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnSize(UINT nType, int cx, int cy);
     afx_msg void OnGroupClicked(NMHDR* pNMHDR, LRESULT* pResult);
     afx_msg void OnSongClicked(NMHDR* pNMHDR, LRESULT* pResult);
