@@ -11,6 +11,28 @@
 #include "CPlayerUIHelper.h"
 #include "DrawCommon.h"
 
+namespace
+{
+COLORREF BlendColor(COLORREF background, COLORREF foreground, int foreground_percent)
+{
+    const int background_percent = 100 - foreground_percent;
+    return RGB(
+        (GetRValue(background) * background_percent + GetRValue(foreground) * foreground_percent) / 100,
+        (GetGValue(background) * background_percent + GetGValue(foreground) * foreground_percent) / 100,
+        (GetBValue(background) * background_percent + GetBValue(foreground) * foreground_percent) / 100);
+}
+
+COLORREF GetAccentColor(const UIColors& colors)
+{
+    return theApp.m_app_setting_data.dark_mode ? colors.color_accent : RGB(35, 117, 218);
+}
+
+COLORREF GetSecondaryTextColor(const UIColors& colors)
+{
+    return theApp.m_app_setting_data.dark_mode ? colors.color_text_2 : RGB(130, 131, 136);
+}
+}
+
 IMPLEMENT_DYNAMIC(CMyGroupsDlg, CBaseDialog)
 CMyGroupsDlg::CMyGroupsDlg(CWnd* pParent, bool embedded) : CBaseDialog(IDD_MY_GROUPS_DIALOG, pParent), m_embedded(embedded) {}
 CMyGroupsDlg::~CMyGroupsDlg() = default;
@@ -31,7 +53,9 @@ void CMyGroupsDlg::DoDataExchange(CDataExchange* pDX)
     DDX_Control(pDX, IDC_MY_GROUP_SEARCH, m_search_edit);
     DDX_Control(pDX, IDC_MY_GROUP_TITLE, m_group_title);
     DDX_Control(pDX, IDC_MY_GROUP_COUNT, m_group_count);
+    DDX_Control(pDX, IDC_MY_GROUP_EMPTY_ICON, m_empty_icon);
     DDX_Control(pDX, IDC_MY_GROUP_EMPTY_STATE, m_empty_state);
+    DDX_Control(pDX, IDC_MY_GROUP_EMPTY_DESC, m_empty_desc);
 }
 
 BEGIN_MESSAGE_MAP(CMyGroupsDlg, CBaseDialog)
@@ -40,6 +64,7 @@ BEGIN_MESSAGE_MAP(CMyGroupsDlg, CBaseDialog)
     ON_BN_CLICKED(IDC_MY_GROUP_PLAY_ALL, &CMyGroupsDlg::OnPlayAll)
     ON_BN_CLICKED(IDC_MY_GROUP_ADD_FILES, &CMyGroupsDlg::OnAddFiles)
     ON_BN_CLICKED(IDC_MY_GROUP_ADD_FOLDER, &CMyGroupsDlg::OnAddFolder)
+    ON_BN_CLICKED(IDC_MY_GROUP_EMPTY_ADD, &CMyGroupsDlg::OnAddFiles)
     ON_WM_ERASEBKGND()
     ON_WM_CTLCOLOR()
     ON_WM_SHOWWINDOW()
@@ -47,9 +72,17 @@ BEGIN_MESSAGE_MAP(CMyGroupsDlg, CBaseDialog)
     ON_WM_DRAWITEM()
     ON_EN_CHANGE(IDC_MY_GROUP_SEARCH, &CMyGroupsDlg::OnSearchChanged)
     ON_NOTIFY(NM_CUSTOMDRAW, IDC_MY_GROUP_LIST, &CMyGroupsDlg::OnGroupCustomDraw)
+    ON_NOTIFY(NM_CUSTOMDRAW, IDC_MY_GROUP_SONG_LIST, &CMyGroupsDlg::OnSongCustomDraw)
+    ON_NOTIFY(NM_CUSTOMDRAW, 0, &CMyGroupsDlg::OnHeaderCustomDraw)
+    ON_NOTIFY(LVN_BEGINDRAG, IDC_MY_GROUP_LIST, &CMyGroupsDlg::OnBeginGroupDrag)
+    ON_NOTIFY(LVN_BEGINDRAG, IDC_MY_GROUP_SONG_LIST, &CMyGroupsDlg::OnBeginSongDrag)
     ON_NOTIFY(NM_CLICK, IDC_MY_GROUP_LIST, &CMyGroupsDlg::OnGroupClicked)
     ON_NOTIFY(NM_CLICK, IDC_MY_GROUP_SONG_LIST, &CMyGroupsDlg::OnSongClicked)
+    ON_NOTIFY(NM_RCLICK, IDC_MY_GROUP_LIST, &CMyGroupsDlg::OnGroupRightClicked)
+    ON_NOTIFY(NM_RCLICK, IDC_MY_GROUP_SONG_LIST, &CMyGroupsDlg::OnSongRightClicked)
     ON_WM_SIZE()
+    ON_WM_MOUSEMOVE()
+    ON_WM_LBUTTONUP()
 END_MESSAGE_MAP()
 
 BOOL CMyGroupsDlg::OnInitDialog()
@@ -61,9 +94,16 @@ BOOL CMyGroupsDlg::OnInitDialog()
     SetButtonIcon(IDC_MY_GROUP_ADD_FILES, IconMgr::IconType::IT_Music);
     SetButtonIcon(IDC_MY_GROUP_ADD_FOLDER, IconMgr::IconType::IT_Folder);
     m_group_title.SetWindowTextW(L"\u6211\u7684\u5206\u7ec4");
+    m_empty_icon.SetWindowTextW(L"\u266b");
     GetDlgItem(IDC_MY_GROUP_NEW_BUTTON)->SetWindowTextW(L"\u65b0\u5efa\u5206\u7ec4");
     SetWindowTheme(m_group_list.GetSafeHwnd(), L"Explorer", nullptr);
     SetWindowTheme(m_song_list.GetSafeHwnd(), L"Explorer", nullptr);
+    SetWindowTheme(m_song_list.GetHeaderCtrl()->GetSafeHwnd(), L"", L"");
+    m_group_list.ModifyStyle(WS_BORDER, 0, SWP_FRAMECHANGED);
+    m_group_list.ModifyStyleEx(WS_EX_CLIENTEDGE, 0, SWP_FRAMECHANGED);
+    m_song_list.ModifyStyle(WS_BORDER, 0, SWP_FRAMECHANGED);
+    m_song_list.ModifyStyleEx(WS_EX_CLIENTEDGE, 0, SWP_FRAMECHANGED);
+    m_song_list.GetHeaderCtrl()->ModifyStyle(HDS_BUTTONS, HDS_FLAT, SWP_FRAMECHANGED);
     SetWindowTheme(GetDlgItem(IDC_MY_GROUP_PLAY_ALL)->GetSafeHwnd(), L"Explorer", nullptr);
     SetWindowTheme(GetDlgItem(IDC_MY_GROUP_ADD_FILES)->GetSafeHwnd(), L"Explorer", nullptr);
     SetWindowTheme(GetDlgItem(IDC_MY_GROUP_ADD_FOLDER)->GetSafeHwnd(), L"Explorer", nullptr);
@@ -72,7 +112,7 @@ BOOL CMyGroupsDlg::OnInitDialog()
     m_group_list.InsertColumn(0, L"", LVCFMT_LEFT, theApp.DPI(110));
     m_group_list.InsertColumn(1, L"", LVCFMT_RIGHT, theApp.DPI(30));
     m_group_list.InsertColumn(2, L"", LVCFMT_CENTER, theApp.DPI(32));
-    m_group_row_height_image.Create(1, theApp.DPI(42), ILC_COLOR32 | ILC_MASK, 1, 1);
+    m_group_row_height_image.Create(1, theApp.DPI(52), ILC_COLOR32 | ILC_MASK, 1, 1);
     m_group_list.SetImageList(&m_group_row_height_image, LVSIL_SMALL);
     m_song_list.SetExtendedStyle(m_song_list.GetExtendedStyle() | LVS_EX_FULLROWSELECT | LVS_EX_DOUBLEBUFFER);
     m_song_list.InsertColumn(0, L"\u6b4c\u66f2", LVCFMT_LEFT, theApp.DPI(180));
@@ -80,6 +120,8 @@ BOOL CMyGroupsDlg::OnInitDialog()
     m_song_list.InsertColumn(2, L"\u4e13\u8f91", LVCFMT_LEFT, theApp.DPI(110));
     m_song_list.InsertColumn(3, L"\u65f6\u957f", LVCFMT_RIGHT, theApp.DPI(55));
     m_song_list.InsertColumn(4, L"", LVCFMT_CENTER, theApp.DPI(36));
+    m_song_row_height_image.Create(1, theApp.DPI(44), ILC_COLOR32 | ILC_MASK, 1, 1);
+    m_song_list.SetImageList(&m_song_row_height_image, LVSIL_SMALL);
     const UIColors colors = CPlayerUIHelper::GetUIColors(theApp.m_app_setting_data.dark_mode, true);
     m_group_list.SetBkColor(CLR_NONE);
     m_group_list.SetTextBkColor(CLR_NONE);
@@ -88,12 +130,40 @@ BOOL CMyGroupsDlg::OnInitDialog()
     m_song_list.SetTextBkColor(CLR_NONE);
     m_song_list.SetTextColor(colors.color_text);
     m_background_brush.CreateSolidBrush(colors.color_back);
+    m_search_brush.CreateSolidBrush(theApp.m_app_setting_data.dark_mode ? colors.color_panel_back : RGB(245, 246, 248));
+    LOGFONT title_font{};
+    if (GetFont() != nullptr && GetFont()->GetLogFont(&title_font))
+    {
+        title_font.lfWeight = FW_SEMIBOLD;
+        title_font.lfHeight = theApp.DPI(16);
+        m_title_font.CreateFontIndirect(&title_font);
+        m_group_title.SetFont(&m_title_font);
+        m_group_count.SetFont(&m_title_font);
+
+        LOGFONT header_font = title_font;
+        header_font.lfHeight = theApp.DPI(10);
+        m_header_font.CreateFontIndirect(&header_font);
+        m_song_list.GetHeaderCtrl()->SetFont(&m_header_font);
+
+        LOGFONT empty_title_font = title_font;
+        empty_title_font.lfHeight = theApp.DPI(18);
+        m_empty_title_font.CreateFontIndirect(&empty_title_font);
+        m_empty_state.SetFont(&m_empty_title_font);
+
+        LOGFONT empty_icon_font = title_font;
+        empty_icon_font.lfHeight = theApp.DPI(38);
+        empty_icon_font.lfWeight = FW_NORMAL;
+        m_empty_icon_font.CreateFontIndirect(&empty_icon_font);
+        m_empty_icon.SetFont(&m_empty_icon_font);
+    }
+    m_search_edit.ModifyStyleEx(WS_EX_CLIENTEDGE, 0, SWP_FRAMECHANGED);
     m_search_edit.SendMessage(EM_SETCUEBANNER, TRUE, reinterpret_cast<LPARAM>(L"\u641c\u7d22\u6b4c\u66f2\u3001\u6b4c\u624b\u6216\u4e13\u8f91"));
     m_tooltip.Create(this, TTS_ALWAYSTIP | TTS_NOPREFIX);
     m_tooltip.AddTool(GetDlgItem(IDC_MY_GROUP_BACK), theApp.m_str_table.LoadText(L"UI_TIP_BTN_BACK").c_str());
     m_tooltip.AddTool(GetDlgItem(IDC_MY_GROUP_PLAY_ALL), L"\u64ad\u653e\u5168\u90e8");
     m_tooltip.AddTool(GetDlgItem(IDC_MY_GROUP_ADD_FILES), L"\u6dfb\u52a0\u6b4c\u66f2");
     m_tooltip.AddTool(GetDlgItem(IDC_MY_GROUP_ADD_FOLDER), L"\u6dfb\u52a0\u76ee\u5f55");
+    m_tooltip.AddTool(GetDlgItem(IDC_MY_GROUP_EMPTY_ADD), L"\u6dfb\u52a0\u6b4c\u66f2\u5230\u5f53\u524d\u5206\u7ec4");
     m_tooltip.AddTool(&m_group_list, L"");
     m_tooltip.AddTool(&m_song_list, L"");
     LoadGroups();
@@ -153,10 +223,15 @@ BOOL CMyGroupsDlg::OnEraseBkgnd(CDC* pDC)
     const CRect count_rect = get_control_rect(IDC_MY_GROUP_COUNT);
     songs_panel.top = count_rect.top;
     songs_panel.InflateRect(theApp.DPI(6), theApp.DPI(6));
-    drawer.FillAlphaRect(group_panel, colors.color_panel_back, 42, true);
-    drawer.FillAlphaRect(songs_panel, colors.color_panel_back, 72, true);
+    drawer.FillAlphaRect(group_panel, colors.color_panel_back, 96, true);
+    drawer.FillAlphaRect(songs_panel, colors.color_panel_back, 36, true);
     CRect divider{ group_panel.right + theApp.DPI(5), group_panel.top, group_panel.right + theApp.DPI(6), group_panel.bottom };
-    drawer.FillAlphaRect(divider, colors.color_border, 120, true);
+    if (!theApp.m_app_setting_data.dark_mode)
+    {
+        drawer.FillRect(group_panel, RGB(245, 246, 248));
+        drawer.FillRect(songs_panel, RGB(255, 255, 255));
+    }
+    drawer.FillAlphaRect(divider, theApp.m_app_setting_data.dark_mode ? colors.color_border : RGB(226, 228, 232), 120, true);
     return TRUE;
 }
 
@@ -182,12 +257,20 @@ void CMyGroupsDlg::OnGroupCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
     const bool hovered = row == m_group_hover_row;
     const UIColors colors = CPlayerUIHelper::GetUIColors(theApp.m_app_setting_data.dark_mode, true);
 
-    dc->FillSolidRect(rect, colors.color_back);
+    const COLORREF accent_color = GetAccentColor(colors);
+    const COLORREF secondary_text_color = GetSecondaryTextColor(colors);
+    const COLORREF sidebar_color = theApp.m_app_setting_data.dark_mode
+        ? BlendColor(colors.color_back, colors.color_panel_back, 68)
+        : RGB(245, 246, 248);
+    dc->FillSolidRect(rect, sidebar_color);
     CRect item_rect = rect;
     item_rect.DeflateRect(theApp.DPI(4), theApp.DPI(3));
     if (selected || hovered)
     {
-        CBrush item_brush(selected ? colors.color_list_selected : colors.color_surface_hover);
+        const COLORREF item_color = selected
+            ? BlendColor(sidebar_color, accent_color, theApp.m_app_setting_data.dark_mode ? 22 : 10)
+            : colors.color_surface_hover;
+        CBrush item_brush(item_color);
         CBrush* old_brush = dc->SelectObject(&item_brush);
         CPen* old_pen = static_cast<CPen*>(dc->SelectStockObject(NULL_PEN));
         dc->RoundRect(item_rect, CPoint(theApp.DPI(10), theApp.DPI(10)));
@@ -197,21 +280,27 @@ void CMyGroupsDlg::OnGroupCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
     if (selected)
     {
         CRect indicator{ item_rect.left, item_rect.top + theApp.DPI(8), item_rect.left + theApp.DPI(3), item_rect.bottom - theApp.DPI(8) };
-        dc->FillSolidRect(indicator, colors.color_accent);
+        dc->FillSolidRect(indicator, accent_color);
     }
 
     dc->SetBkMode(TRANSPARENT);
     dc->SetTextColor(colors.color_text);
     CRect name_rect = item_rect;
-    name_rect.left += theApp.DPI(14);
+    name_rect.left += theApp.DPI(46);
     name_rect.right -= theApp.DPI(68);
+    CRect icon_rect = item_rect;
+    icon_rect.left += theApp.DPI(14);
+    icon_rect.right = icon_rect.left + theApp.DPI(18);
+    dc->SetTextColor(selected ? accent_color : secondary_text_color);
+    dc->DrawText(row == 0 ? L"\u266b" : L"\u25a3", icon_rect, DT_CENTER | DT_VCENTER | DT_SINGLELINE);
+    dc->SetTextColor(colors.color_text);
     dc->DrawText(m_group_list.GetItemText(row, 0), name_rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS);
     CRect count_rect = item_rect;
     count_rect.left = count_rect.right - theApp.DPI(66);
     count_rect.right -= theApp.DPI(34);
-    dc->SetTextColor(colors.color_text_2);
+    dc->SetTextColor(secondary_text_color);
     dc->DrawText(m_group_list.GetItemText(row, 1), count_rect, DT_RIGHT | DT_VCENTER | DT_SINGLELINE);
-    if (selected || hovered)
+    if (hovered)
     {
         CRect more_rect = item_rect;
         more_rect.left = more_rect.right - theApp.DPI(34);
@@ -221,9 +310,151 @@ void CMyGroupsDlg::OnGroupCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
     *pResult = CDRF_SKIPDEFAULT;
 }
 
+void CMyGroupsDlg::OnSongCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    const LPNMLVCUSTOMDRAW custom_draw = reinterpret_cast<LPNMLVCUSTOMDRAW>(pNMHDR);
+    if (custom_draw->nmcd.dwDrawStage == CDDS_PREPAINT)
+    {
+        *pResult = CDRF_NOTIFYITEMDRAW;
+        return;
+    }
+    if (custom_draw->nmcd.dwDrawStage == CDDS_ITEMPREPAINT)
+    {
+        *pResult = CDRF_NOTIFYSUBITEMDRAW;
+        return;
+    }
+    if (custom_draw->nmcd.dwDrawStage != (CDDS_ITEMPREPAINT | CDDS_SUBITEM))
+    {
+        *pResult = CDRF_DODEFAULT;
+        return;
+    }
+
+    const int row = static_cast<int>(custom_draw->nmcd.dwItemSpec);
+    const int column = custom_draw->iSubItem;
+    if (row < 0 || row >= static_cast<int>(m_visible_song_indices.size()))
+    {
+        *pResult = CDRF_DODEFAULT;
+        return;
+    }
+
+    CDC* dc = CDC::FromHandle(custom_draw->nmcd.hdc);
+    CRect cell_rect;
+    m_song_list.GetSubItemRect(row, column, LVIR_BOUNDS, cell_rect);
+    const UIColors colors = CPlayerUIHelper::GetUIColors(theApp.m_app_setting_data.dark_mode, true);
+    const COLORREF accent_color = GetAccentColor(colors);
+    const COLORREF secondary_text_color = GetSecondaryTextColor(colors);
+    const bool selected = (m_song_list.GetItemState(row, LVIS_SELECTED) & LVIS_SELECTED) != 0;
+    const bool hovered = row == m_song_hover_row;
+    const SongInfo& song = m_current_songs[m_visible_song_indices[row]];
+    const bool playing = song == CPlayer::GetInstance().GetCurrentSongInfo();
+    const COLORREF content_background = theApp.m_app_setting_data.dark_mode ? colors.color_back : RGB(255, 255, 255);
+    const COLORREF zebra_background = theApp.m_app_setting_data.dark_mode
+        ? BlendColor(colors.color_back, colors.color_panel_back, 10)
+        : RGB(249, 249, 250);
+    COLORREF background = row % 2 == 0 ? zebra_background : content_background;
+    if (hovered)
+    {
+        background = BlendColor(background, secondary_text_color, theApp.m_app_setting_data.dark_mode ? 8 : 3);
+    }
+    if (selected)
+    {
+        background = BlendColor(content_background, accent_color, theApp.m_app_setting_data.dark_mode ? 22 : 9);
+    }
+    dc->FillSolidRect(cell_rect, background);
+
+    if (column == 0 && selected)
+    {
+        dc->FillSolidRect(cell_rect.left, cell_rect.top + theApp.DPI(6), theApp.DPI(3), cell_rect.Height() - theApp.DPI(12), accent_color);
+    }
+
+    CString text = m_song_list.GetItemText(row, column);
+    if (column == 4 && !hovered)
+    {
+        text.Empty();
+    }
+    CRect text_rect = cell_rect;
+    text_rect.DeflateRect(theApp.DPI(12), 0);
+    if (column == 0 && playing)
+    {
+        CRect marker_rect = text_rect;
+        marker_rect.right = marker_rect.left + theApp.DPI(22);
+        dc->SetTextColor(accent_color);
+        dc->SetBkMode(TRANSPARENT);
+        CFont* old_font = dc->SelectObject(&m_title_font);
+        dc->DrawText(L"\u25b6", marker_rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+        dc->SelectObject(old_font);
+        text_rect.left += theApp.DPI(26);
+    }
+    const bool unknown = text.Find(L"<\u672a\u77e5") >= 0;
+    const bool playing_title = playing && column == 0;
+    dc->SetTextColor(unknown ? secondary_text_color : (playing_title ? accent_color : colors.color_text));
+    dc->SetBkMode(TRANSPARENT);
+    UINT format = DT_LEFT | DT_VCENTER | DT_SINGLELINE | DT_END_ELLIPSIS;
+    if (column == 3)
+    {
+        format = DT_RIGHT | DT_VCENTER | DT_SINGLELINE;
+    }
+    else if (column == 4)
+    {
+        format = DT_CENTER | DT_VCENTER | DT_SINGLELINE;
+    }
+    dc->DrawText(text, text_rect, format);
+    *pResult = CDRF_SKIPDEFAULT;
+}
+
+void CMyGroupsDlg::OnHeaderCustomDraw(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    const LPNMCUSTOMDRAW custom_draw = reinterpret_cast<LPNMCUSTOMDRAW>(pNMHDR);
+    if (custom_draw->hdr.hwndFrom != m_song_list.GetHeaderCtrl()->GetSafeHwnd())
+    {
+        *pResult = CDRF_DODEFAULT;
+        return;
+    }
+    if (custom_draw->dwDrawStage == CDDS_PREPAINT)
+    {
+        *pResult = CDRF_NOTIFYITEMDRAW;
+        return;
+    }
+    if (custom_draw->dwDrawStage != CDDS_ITEMPREPAINT)
+    {
+        *pResult = CDRF_DODEFAULT;
+        return;
+    }
+
+    CDC* dc = CDC::FromHandle(custom_draw->hdc);
+    CRect rect = custom_draw->rc;
+    const int column = static_cast<int>(custom_draw->dwItemSpec);
+    const UIColors colors = CPlayerUIHelper::GetUIColors(theApp.m_app_setting_data.dark_mode, true);
+    const COLORREF header_background = theApp.m_app_setting_data.dark_mode
+        ? BlendColor(colors.color_back, colors.color_panel_back, 52)
+        : RGB(241, 242, 244);
+    const COLORREF divider_color = theApp.m_app_setting_data.dark_mode ? colors.color_border : RGB(226, 228, 232);
+    dc->FillSolidRect(rect, header_background);
+    dc->FillSolidRect(rect.left, rect.bottom - 1, rect.Width(), 1, divider_color);
+    CRect text_rect = rect;
+    text_rect.DeflateRect(theApp.DPI(12), 0);
+    dc->SetBkMode(TRANSPARENT);
+    dc->SetTextColor(GetSecondaryTextColor(colors));
+    CFont* old_font = dc->SelectObject(&m_header_font);
+    UINT format = column == 3 ? DT_RIGHT | DT_VCENTER | DT_SINGLELINE : DT_LEFT | DT_VCENTER | DT_SINGLELINE;
+    CString header_text;
+    wchar_t header_buffer[64]{};
+    HDITEM header_item{};
+    header_item.mask = HDI_TEXT;
+    header_item.pszText = header_buffer;
+    header_item.cchTextMax = _countof(header_buffer);
+    if (m_song_list.GetHeaderCtrl()->GetItem(column, &header_item))
+    {
+        header_text = header_buffer;
+    }
+    dc->DrawText(header_text, text_rect, format);
+    dc->SelectObject(old_font);
+    *pResult = CDRF_SKIPDEFAULT;
+}
+
 void CMyGroupsDlg::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT draw_item)
 {
-    if (nIDCtl != IDC_MY_GROUP_NEW_BUTTON || draw_item == nullptr)
+    if (draw_item == nullptr)
     {
         CBaseDialog::OnDrawItem(nIDCtl, draw_item);
         return;
@@ -234,17 +465,66 @@ void CMyGroupsDlg::OnDrawItem(int nIDCtl, LPDRAWITEMSTRUCT draw_item)
     const bool pressed = (draw_item->itemState & ODS_SELECTED) != 0;
     const bool focused = (draw_item->itemState & ODS_FOCUS) != 0;
     const UIColors colors = CPlayerUIHelper::GetUIColors(theApp.m_app_setting_data.dark_mode, true);
+    const COLORREF accent_color = GetAccentColor(colors);
     dc->FillSolidRect(rect, colors.color_back);
     rect.DeflateRect(theApp.DPI(4), theApp.DPI(3));
-    CBrush brush(pressed ? colors.color_surface_pressed : (focused ? colors.color_surface_hover : colors.color_button_back));
+    const bool main_action = nIDCtl == IDC_MY_GROUP_EMPTY_ADD || nIDCtl == IDC_MY_GROUP_PLAY_ALL;
+    const bool secondary_action = nIDCtl == IDC_MY_GROUP_NEW_BUTTON;
+    const bool disabled = (draw_item->itemState & ODS_DISABLED) != 0;
+    COLORREF button_color = colors.color_button_back;
+    if (main_action)
+    {
+        button_color = disabled ? colors.color_surface_hover : accent_color;
+    }
+    else if (secondary_action)
+    {
+        const COLORREF sidebar_color = theApp.m_app_setting_data.dark_mode ? colors.color_back : RGB(245, 246, 248);
+        button_color = BlendColor(sidebar_color, accent_color, theApp.m_app_setting_data.dark_mode ? 18 : 8);
+    }
+    if (pressed)
+    {
+        button_color = colors.color_surface_pressed;
+    }
+    else if (focused)
+    {
+        button_color = colors.color_surface_hover;
+    }
+    CBrush brush(button_color);
     CBrush* old_brush = dc->SelectObject(&brush);
-    CPen* old_pen = static_cast<CPen*>(dc->SelectStockObject(NULL_PEN));
-    dc->RoundRect(rect, CPoint(theApp.DPI(10), theApp.DPI(10)));
+    CPen border_pen(PS_SOLID, 1, button_color);
+    CPen* old_pen = dc->SelectObject(&border_pen);
+    dc->RoundRect(rect, CPoint(theApp.DPI(6), theApp.DPI(6)));
     dc->SelectObject(old_pen);
     dc->SelectObject(old_brush);
     dc->SetBkMode(TRANSPARENT);
-    dc->SetTextColor(colors.color_text);
-    dc->DrawText(L"+  \u65b0\u5efa\u5206\u7ec4", rect, DT_LEFT | DT_VCENTER | DT_SINGLELINE);
+    dc->SetTextColor(main_action && !disabled ? RGB(255, 255, 255) : (secondary_action ? accent_color : colors.color_text));
+    CString label;
+    if (nIDCtl == IDC_MY_GROUP_NEW_BUTTON)
+    {
+        label = L"+  \u65b0\u5efa\u5206\u7ec4";
+    }
+    else if (nIDCtl == IDC_MY_GROUP_PLAY_ALL)
+    {
+        label = L"\u25b6";
+    }
+    else if (nIDCtl == IDC_MY_GROUP_ADD_FILES)
+    {
+        label = L"\u266b";
+    }
+    else if (nIDCtl == IDC_MY_GROUP_ADD_FOLDER)
+    {
+        label = L"\u25a3";
+    }
+    else if (nIDCtl == IDC_MY_GROUP_EMPTY_ADD)
+    {
+        label = L"+  \u6dfb\u52a0\u6b4c\u66f2\u5230\u5206\u7ec4";
+    }
+    else
+    {
+        CBaseDialog::OnDrawItem(nIDCtl, draw_item);
+        return;
+    }
+    dc->DrawText(label, rect, nIDCtl == IDC_MY_GROUP_NEW_BUTTON ? DT_LEFT | DT_VCENTER | DT_SINGLELINE : DT_CENTER | DT_VCENTER | DT_SINGLELINE);
 }
 
 HBRUSH CMyGroupsDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
@@ -255,8 +535,16 @@ HBRUSH CMyGroupsDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
     pDC->SetTextColor(colors.color_text);
     if (nCtlColor == CTLCOLOR_STATIC)
     {
-        if (pWnd == &m_group_title || pWnd == &m_group_count || pWnd == &m_empty_state)
+        if (pWnd == &m_group_title || pWnd == &m_group_count || pWnd == &m_empty_icon || pWnd == &m_empty_state || pWnd == &m_empty_desc)
         {
+            if (pWnd == &m_empty_icon)
+            {
+                pDC->SetTextColor(GetAccentColor(colors));
+            }
+            else if (pWnd == &m_empty_desc)
+            {
+                pDC->SetTextColor(GetSecondaryTextColor(colors));
+            }
             pDC->SetBkColor(colors.color_back);
             if (m_background_brush.GetSafeHandle() != nullptr) return static_cast<HBRUSH>(m_background_brush.GetSafeHandle());
         }
@@ -265,8 +553,11 @@ HBRUSH CMyGroupsDlg::OnCtlColor(CDC* pDC, CWnd* pWnd, UINT nCtlColor)
     }
     if (nCtlColor == CTLCOLOR_EDIT)
     {
-        pDC->SetBkColor(colors.color_panel_back);
-        if (m_background_brush.GetSafeHandle() != nullptr) return static_cast<HBRUSH>(m_background_brush.GetSafeHandle());
+        pDC->SetBkColor(theApp.m_app_setting_data.dark_mode ? colors.color_panel_back : RGB(245, 246, 248));
+        if (m_search_brush.GetSafeHandle() != nullptr)
+        {
+            return static_cast<HBRUSH>(m_search_brush.GetSafeHandle());
+        }
     }
     return CBaseDialog::OnCtlColor(pDC, pWnd, nCtlColor);
 }
@@ -289,7 +580,26 @@ void CMyGroupsDlg::OnShowWindow(BOOL bShow, UINT nStatus)
 
 void CMyGroupsDlg::OnTimer(UINT_PTR nIDEvent)
 {
-    if (nIDEvent == 1) Invalidate(TRUE);
+    if (nIDEvent == 1)
+    {
+        Invalidate(TRUE);
+        const SongInfo& playing_song = CPlayer::GetInstance().GetCurrentSongInfo();
+        if (playing_song.file_path != m_last_playing_path || playing_song.track != m_last_playing_track)
+        {
+            m_last_playing_path = playing_song.file_path;
+            m_last_playing_track = playing_song.track;
+            for (int row{}; row < static_cast<int>(m_visible_song_indices.size()); ++row)
+            {
+                const SongInfo& visible_song = m_current_songs[m_visible_song_indices[row]];
+                if (visible_song == playing_song)
+                {
+                    m_song_list.EnsureVisible(row, FALSE);
+                    break;
+                }
+            }
+            m_song_list.Invalidate(FALSE);
+        }
+    }
     CBaseDialog::OnTimer(nIDEvent);
 }
 
@@ -319,11 +629,24 @@ BOOL CMyGroupsDlg::PreTranslateMessage(MSG* pMsg)
                     if (m_group_hover_row >= 0) m_group_list.RedrawItems(m_group_hover_row, m_group_hover_row);
                 }
             }
-            else if (m_group_hover_row >= 0)
+            else
             {
-                const int old_hover_row = m_group_hover_row;
-                m_group_hover_row = -1;
-                m_group_list.RedrawItems(old_hover_row, old_hover_row);
+                LVHITTESTINFO hit{};
+                hit.pt = point;
+                m_song_list.SubItemHitTest(&hit);
+                if (m_song_hover_row != hit.iItem)
+                {
+                    const int old_hover_row = m_song_hover_row;
+                    m_song_hover_row = hit.iItem;
+                    if (old_hover_row >= 0)
+                    {
+                        m_song_list.RedrawItems(old_hover_row, old_hover_row);
+                    }
+                    if (m_song_hover_row >= 0)
+                    {
+                        m_song_list.RedrawItems(m_song_hover_row, m_song_hover_row);
+                    }
+                }
             }
             UpdateTooltip(source, point);
         }
@@ -363,7 +686,8 @@ void CMyGroupsDlg::OnSize(UINT nType, int cx, int cy)
     if (CWnd* back = GetDlgItem(IDC_MY_GROUP_BACK))
         back->MoveWindow(margin, margin, theApp.DPI(40), header_height);
     m_group_title.MoveWindow(margin + theApp.DPI(48), margin, max(1, group_width - theApp.DPI(48)), header_height);
-    m_group_list.MoveWindow(margin, list_top, group_width, max(1, content_height - new_button_height - gap));
+    const int new_button_gap = theApp.DPI(16);
+    m_group_list.MoveWindow(margin, list_top, group_width, max(1, content_height - new_button_height - new_button_gap));
     m_group_list.SetColumnWidth(2, theApp.DPI(36));
     m_group_list.SetColumnWidth(1, theApp.DPI(38));
     m_group_list.SetColumnWidth(0, max(1, group_width - theApp.DPI(74)));
@@ -378,8 +702,22 @@ void CMyGroupsDlg::OnSize(UINT nType, int cx, int cy)
     if (CWnd* button = GetDlgItem(IDC_MY_GROUP_ADD_FILES)) button->MoveWindow(search_left - button_width * 2 - gap * 2, margin, button_width, header_height);
     if (CWnd* button = GetDlgItem(IDC_MY_GROUP_ADD_FOLDER)) button->MoveWindow(search_left - button_width - gap, margin, button_width, header_height);
     m_search_edit.MoveWindow(search_left, margin, search_width, header_height);
+    if (m_search_edit.GetSafeHwnd() != nullptr)
+    {
+        HRGN search_region = CreateRoundRectRgn(0, 0, search_width + 1, header_height + 1, theApp.DPI(6), theApp.DPI(6));
+        m_search_edit.SetWindowRgn(search_region, TRUE);
+    }
     m_song_list.MoveWindow(right_left, list_top, max(1, cx - right_left - margin), content_height);
-    m_empty_state.MoveWindow(right_left, list_top + max(0, content_height / 2 - theApp.DPI(18)), max(1, cx - right_left - margin), theApp.DPI(36));
+    const int empty_width = max(1, cx - right_left - margin);
+    const int empty_center_y = list_top + content_height / 2;
+    m_empty_icon.MoveWindow(right_left, empty_center_y - theApp.DPI(92), empty_width, theApp.DPI(48));
+    m_empty_state.MoveWindow(right_left, empty_center_y - theApp.DPI(38), empty_width, theApp.DPI(30));
+    m_empty_desc.MoveWindow(right_left, empty_center_y, empty_width, theApp.DPI(24));
+    if (CWnd* button = GetDlgItem(IDC_MY_GROUP_EMPTY_ADD))
+    {
+        const int empty_button_width = theApp.DPI(176);
+        button->MoveWindow(right_left + (empty_width - empty_button_width) / 2, empty_center_y + theApp.DPI(38), empty_button_width, theApp.DPI(40));
+    }
 
     CRect song_client_rect;
     m_song_list.GetClientRect(&song_client_rect);
@@ -392,6 +730,107 @@ void CMyGroupsDlg::OnSize(UINT nType, int cx, int cy)
         m_song_list.SetColumnWidth(3, song_width * 12 / 100);
         m_song_list.SetColumnWidth(4, song_width * 8 / 100);
     }
+}
+
+void CMyGroupsDlg::OnBeginGroupDrag(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    const LPNMLISTVIEW list_view = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+    m_group_drag_row = list_view->iItem > 0 ? list_view->iItem : -1;
+    if (m_group_drag_row > 0)
+    {
+        SetCapture();
+    }
+    *pResult = 0;
+}
+
+void CMyGroupsDlg::OnBeginSongDrag(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    const LPNMLISTVIEW list_view = reinterpret_cast<LPNMLISTVIEW>(pNMHDR);
+    m_song_drag_row = list_view->iItem >= 0 && list_view->iItem < static_cast<int>(m_visible_song_indices.size())
+        ? list_view->iItem
+        : -1;
+    if (m_song_drag_row >= 0)
+    {
+        SetCapture();
+    }
+    *pResult = 0;
+}
+
+void CMyGroupsDlg::OnMouseMove(UINT nFlags, CPoint point)
+{
+    if (m_group_drag_row > 0 || m_song_drag_row >= 0)
+    {
+        CPoint list_point = point;
+        ClientToScreen(&list_point);
+        m_group_list.ScreenToClient(&list_point);
+        LVHITTESTINFO hit{};
+        hit.pt = list_point;
+        const int target_row = m_group_list.HitTest(&hit);
+        for (int row{}; row < m_group_list.GetItemCount(); ++row)
+        {
+            m_group_list.SetItemState(row, 0, LVIS_DROPHILITED);
+        }
+        if (target_row > 0)
+        {
+            m_group_list.SetItemState(target_row, LVIS_DROPHILITED, LVIS_DROPHILITED);
+        }
+    }
+    CBaseDialog::OnMouseMove(nFlags, point);
+}
+
+void CMyGroupsDlg::OnLButtonUp(UINT nFlags, CPoint point)
+{
+    if (m_group_drag_row > 0)
+    {
+        CPoint list_point = point;
+        ClientToScreen(&list_point);
+        m_group_list.ScreenToClient(&list_point);
+        LVHITTESTINFO hit{};
+        hit.pt = list_point;
+        const int target_row = m_group_list.HitTest(&hit);
+        const int source_index = m_group_drag_row - 1;
+        const int target_index = target_row - 1;
+        if (target_row > 0 && source_index != target_index && source_index < static_cast<int>(m_groups.size())
+            && target_index < static_cast<int>(m_groups.size()))
+        {
+            SongGroup moved_group = std::move(m_groups[source_index]);
+            m_groups.erase(m_groups.begin() + source_index);
+            m_groups.insert(m_groups.begin() + target_index, std::move(moved_group));
+            SaveGroups();
+            ShowGroups(target_row);
+        }
+        m_group_drag_row = -1;
+        ReleaseCapture();
+    }
+    else if (m_song_drag_row >= 0)
+    {
+        CPoint list_point = point;
+        ClientToScreen(&list_point);
+        m_group_list.ScreenToClient(&list_point);
+        LVHITTESTINFO hit{};
+        hit.pt = list_point;
+        const int target_row = m_group_list.HitTest(&hit);
+        if (target_row > 0 && target_row - 1 < static_cast<int>(m_groups.size())
+            && m_song_drag_row < static_cast<int>(m_visible_song_indices.size()))
+        {
+            const SongInfo& song = m_current_songs[m_visible_song_indices[m_song_drag_row]];
+            const SongKey song_key(song);
+            std::vector<SongKey>& target_songs = m_groups[target_row - 1].songs;
+            if (std::find(target_songs.begin(), target_songs.end(), song_key) == target_songs.end())
+            {
+                target_songs.push_back(song_key);
+                SaveGroups();
+                ShowGroups(GetSelectedGroupIndex());
+            }
+        }
+        for (int row{}; row < m_group_list.GetItemCount(); ++row)
+        {
+            m_group_list.SetItemState(row, 0, LVIS_DROPHILITED);
+        }
+        m_song_drag_row = -1;
+        ReleaseCapture();
+    }
+    CBaseDialog::OnLButtonUp(nFlags, point);
 }
 
 void CMyGroupsDlg::LoadGroups()
@@ -555,8 +994,21 @@ void CMyGroupsDlg::ShowSongs()
         m_visible_song_indices.push_back(i);
     }
     const bool empty = m_visible_song_indices.empty();
-    m_empty_state.SetWindowTextW(keyword.empty() ? L"\u5f53\u524d\u5206\u7ec4\u8fd8\u6ca1\u6709\u6b4c\u66f2" : L"\u6ca1\u6709\u627e\u5230\u5339\u914d\u7684\u6b4c\u66f2");
+    const bool search_empty = empty && !keyword.empty();
+    const bool custom_group = GetSelectedGroupIndex() > 0;
+    m_empty_state.SetWindowTextW(search_empty
+        ? L"\u6ca1\u6709\u627e\u5230\u5339\u914d\u7684\u6b4c\u66f2"
+        : (custom_group ? L"\u8fd9\u4e2a\u5206\u7ec4\u8fd8\u6ca1\u6709\u6b4c\u66f2" : L"\u8fd8\u6ca1\u6709\u53ef\u663e\u793a\u7684\u6b4c\u66f2"));
+    m_empty_desc.SetWindowTextW(search_empty
+        ? L"\u8bf7\u5c1d\u8bd5\u5176\u4ed6\u5173\u952e\u8bcd"
+        : (custom_group ? L"\u628a\u6b4c\u66f2\u62d6\u5230\u6b64\u5206\u7ec4，\u6216\u8005\u76f4\u63a5\u6dfb\u52a0\u6b4c\u66f2" : L"\u53ef\u4ee5\u4ece\u672c\u5730\u6dfb\u52a0\u6b4c\u66f2\u6216\u97f3\u4e50\u76ee\u5f55"));
+    m_empty_icon.ShowWindow(empty ? SW_SHOW : SW_HIDE);
     m_empty_state.ShowWindow(empty ? SW_SHOW : SW_HIDE);
+    m_empty_desc.ShowWindow(empty ? SW_SHOW : SW_HIDE);
+    if (CWnd* button = GetDlgItem(IDC_MY_GROUP_EMPTY_ADD))
+    {
+        button->ShowWindow(empty && !search_empty ? SW_SHOW : SW_HIDE);
+    }
     m_song_list.ShowWindow(empty ? SW_HIDE : SW_SHOW);
 }
 
@@ -565,7 +1017,14 @@ void CMyGroupsDlg::UpdateButtons()
     const int selected = GetSelectedGroupIndex();
     const std::wstring name = selected > 0 && selected - 1 < static_cast<int>(m_groups.size()) ? m_groups[selected - 1].name : L"\u6240\u6709\u6b4c\u66f2";
     m_group_count.SetWindowTextW((name + L"  \u00b7  " + std::to_wstring(m_current_songs.size()) + L" \u9996").c_str());
-    if (selected == 0) m_group_list.SetItemText(0, 1, std::to_wstring(m_current_songs.size()).c_str());
+    if (CWnd* play_button = GetDlgItem(IDC_MY_GROUP_PLAY_ALL))
+    {
+        play_button->EnableWindow(!GetPlayableSongs(m_current_songs).empty());
+    }
+    if (selected == 0)
+    {
+        m_group_list.SetItemText(0, 1, std::to_wstring(m_current_songs.size()).c_str());
+    }
 }
 
 void CMyGroupsDlg::OnPlayAll()
@@ -592,19 +1051,51 @@ void CMyGroupsDlg::ShowGroupMenu(int group_row)
 
 void CMyGroupsDlg::ShowSongMenu(int song_index)
 {
-    if (song_index < 0 || song_index >= static_cast<int>(m_current_songs.size())) return;
+    if (song_index < 0 || song_index >= static_cast<int>(m_current_songs.size()))
+    {
+        return;
+    }
     const SongInfo song = m_current_songs[song_index];
-    CMenu menu; menu.CreatePopupMenu();
+    CMenu menu;
+    menu.CreatePopupMenu();
     menu.AppendMenu(MF_STRING, 1, L"\u7acb\u5373\u64ad\u653e");
-    if (GetSelectedGroupIndex() > 0) menu.AppendMenu(MF_STRING, 2, L"\u4ece\u5f53\u524d\u5206\u7ec4\u79fb\u9664");
+    if (GetSelectedGroupIndex() > 0)
+    {
+        menu.AppendMenu(MF_STRING, 2, L"\u4ece\u5f53\u524d\u5206\u7ec4\u79fb\u9664");
+    }
     menu.AppendMenu(MF_STRING, 3, L"\u6dfb\u52a0\u5230\u5176\u4ed6\u5206\u7ec4");
     menu.AppendMenu(MF_STRING, 4, L"\u6dfb\u52a0\u5230\u64ad\u653e\u5217\u8868");
-    CPoint point; GetCursorPos(&point);
+    menu.AppendMenu(MF_SEPARATOR);
+    menu.AppendMenu(MF_STRING, 5, L"\u6253\u5f00\u6587\u4ef6\u6240\u5728\u4f4d\u7f6e");
+    CPoint point;
+    GetCursorPos(&point);
     const UINT command = menu.TrackPopupMenu(TPM_RETURNCMD, point.x, point.y, this);
-    if (command == 1 && CCommon::FileExist(song.file_path)) CPlayer::GetInstance().OpenSongsInDefaultPlaylist({ song }, true);
-    else if (command == 2 && GetSelectedGroupIndex() > 0) { auto& songs = m_groups[GetSelectedGroupIndex() - 1].songs; const SongKey key(song); songs.erase(std::remove(songs.begin(), songs.end(), key), songs.end()); SaveGroups(); LoadCurrentGroupSongs(); }
-    else if (command == 3) AddSongsToGroup({ song });
-    else if (command == 4 && CCommon::FileExist(song.file_path)) CPlayer::GetInstance().OpenSongsInDefaultPlaylist({ song }, false);
+    if (command == 1 && CCommon::FileExist(song.file_path))
+    {
+        CPlayer::GetInstance().OpenSongsInDefaultPlaylist({ song }, true);
+    }
+    else if (command == 2 && GetSelectedGroupIndex() > 0)
+    {
+        std::vector<SongKey>& songs = m_groups[GetSelectedGroupIndex() - 1].songs;
+        const SongKey key(song);
+        songs.erase(std::remove(songs.begin(), songs.end(), key), songs.end());
+        SaveGroups();
+        LoadCurrentGroupSongs();
+    }
+    else if (command == 3)
+    {
+        AddSongsToGroup({ song });
+    }
+    else if (command == 4 && CCommon::FileExist(song.file_path))
+    {
+        CPlayer::GetInstance().OpenSongsInDefaultPlaylist({ song }, false);
+    }
+    else if (command == 5 && CCommon::FileExist(song.file_path))
+    {
+        CString parameters;
+        parameters.Format(L"/select,\"%s\"", song.file_path.c_str());
+        ShellExecute(nullptr, L"open", L"explorer", parameters, nullptr, SW_SHOWNORMAL);
+    }
 }
 
 void CMyGroupsDlg::AddSelectedSongs(int group_row)
@@ -755,6 +1246,28 @@ void CMyGroupsDlg::OnSongClicked(NMHDR* pNMHDR, LRESULT* pResult)
     const LPNMITEMACTIVATE item = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
     if (item->iItem >= 0 && item->iItem < static_cast<int>(m_visible_song_indices.size()) && item->iSubItem == 4)
         ShowSongMenu(m_visible_song_indices[item->iItem]);
+    *pResult = 0;
+}
+
+void CMyGroupsDlg::OnGroupRightClicked(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    const LPNMITEMACTIVATE item = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+    if (item->iItem >= 0 && item->iItem <= static_cast<int>(m_groups.size()))
+    {
+        m_group_list.SetItemState(item->iItem, LVIS_SELECTED | LVIS_FOCUSED, LVIS_SELECTED | LVIS_FOCUSED);
+        LoadCurrentGroupSongs();
+        ShowGroupMenu(item->iItem);
+    }
+    *pResult = 0;
+}
+
+void CMyGroupsDlg::OnSongRightClicked(NMHDR* pNMHDR, LRESULT* pResult)
+{
+    const LPNMITEMACTIVATE item = reinterpret_cast<LPNMITEMACTIVATE>(pNMHDR);
+    if (item->iItem >= 0 && item->iItem < static_cast<int>(m_visible_song_indices.size()))
+    {
+        ShowSongMenu(m_visible_song_indices[item->iItem]);
+    }
     *pResult = 0;
 }
 

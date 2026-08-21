@@ -58,39 +58,16 @@ CMusicPlayerDlg::CMusicPlayerDlg(wstring cmdLine, CWnd* pParent /*=NULL*/)
     m_path_edit.SetTooltopText(theApp.m_str_table.LoadText(L"UI_TIP_BTN_RECENT_FOLDER_OR_PLAYLIST").c_str());
 
     //初始化UI
-    //加载内置界面
-    m_ui_list.push_back(std::make_shared<CUserUi>(&m_ui_static_ctrl, IDR_UI1, theApp.m_ui_data));
-    m_ui_list.push_back(std::make_shared<CUserUi>(&m_ui_static_ctrl, IDR_UI2, theApp.m_ui_data));
-
-    //加载skins目录下的用户自定义界面
-    std::vector<std::shared_ptr<CUserUi>> user_ui_list_with_index;      //指定了序号的用户自定义界面
-    std::vector<std::shared_ptr<CUserUi>> user_ui_list;                 //未指定序号的用户自定义界面
-    std::vector<std::wstring> skin_files;
-    CCommon::GetFiles(theApp.m_local_dir + L"skins\\*.xml", skin_files);
-    for (const auto& file_name : skin_files)
+    // 产品只提供简洁界面，避免运行目录中的其他皮肤改变界面列表。
+    const std::wstring simple_ui_path = theApp.m_local_dir + L"skins\\01_simple.xml";
+    if (CCommon::FileExist(simple_ui_path.c_str()))
     {
-        std::wstring file_path = theApp.m_local_dir + L"skins\\" + file_name;
-        auto ui = std::make_shared<CUserUi>(&m_ui_static_ctrl, file_path, theApp.m_ui_data);
-        if (ui->IsIndexValid())
-            user_ui_list_with_index.push_back(ui);
-        else
-            user_ui_list.push_back(ui);
+        m_ui_list.push_back(std::make_shared<CUserUi>(&m_ui_static_ctrl, simple_ui_path, theApp.m_ui_data));
     }
-    CUserUi::UniqueUiIndex(user_ui_list_with_index);        //确保序号唯一
-    std::sort(user_ui_list_with_index.begin(), user_ui_list_with_index.end(), [](const std::shared_ptr<CUserUi>& ui1, const std::shared_ptr<CUserUi>& ui2)
-        {
-            return ui1->GetUiIndex() < ui2->GetUiIndex();
-        });
-    for (const auto& ui : user_ui_list_with_index)
-        m_ui_list.push_back(ui);
-    int index = m_ui_list.size() + 1;
-    if (!user_ui_list_with_index.empty())
-        index = user_ui_list_with_index.back()->GetUiIndex() + 1;
-    for (const auto& ui : user_ui_list)
+    else
     {
-        m_ui_list.push_back(ui);
-        ui->SetIndex(index);
-        index++;
+        // 资源丢失时保留内置界面，防止界面列表为空导致程序无法启动。
+        m_ui_list.push_back(std::make_shared<CUserUi>(&m_ui_static_ctrl, IDR_UI1, theApp.m_ui_data));
     }
 }
 
@@ -2025,6 +2002,12 @@ void CMusicPlayerDlg::IniPlaylistPopupMenu()
 void CMusicPlayerDlg::InitUiMenu()
 {
     vector<MenuMgr::MenuItem> menu_list;
+    if (m_ui_list.size() <= 1)
+    {
+        theApp.m_menu_mgr.UpdateMenu(MenuMgr::MainViewSwitchUiMenu, menu_list);
+        return;
+    }
+
     for (size_t i{}; i < m_ui_list.size(); ++i)
     {
         if (menu_list.size() >= SELECT_UI_MAX_SIZE + 1)

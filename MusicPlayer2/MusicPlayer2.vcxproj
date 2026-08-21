@@ -123,6 +123,10 @@
     <PreBuildEvent>
       <Command>print_compile_time.bat</Command>
     </PreBuildEvent>
+    <PostBuildEvent>
+      <Command>if not exist "$(OutDir)skins" mkdir "$(OutDir)skins"
+copy /Y "$(ProjectDir)skins\01_simple.xml" "$(OutDir)skins\01_simple.xml"</Command>
+    </PostBuildEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>

@@ -1,8 +1,8 @@
 <root name="%(TXT_UI_NAME_SIMPLE_UI)" xmlns="https://github.com/zhongyang219/MusicPlayer2/skin" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="https://github.com/zhongyang219/MusicPlayer2/skin ./skin.xsd"
        index="7">
   <ui type="big">
-    <verticalLayout margin="16">
-      <horizontalLayout margin-bottom="12">
+    <verticalLayout>
+      <horizontalLayout margin-left="16" margin-right="16" margin-top="16" margin-bottom="12">
         <verticalLayout width="35%" margin-right="6">
           <verticalLayout margin="24">
             <placeHolder proportion="2"/>
@@ -17,58 +17,58 @@
           <lyrics margin="20" no_background="true"/>
         </verticalLayout>
       </horizontalLayout>
-      <verticalLayout id="simpleControlBar" height="112">
+      <rectangle id="simpleControlBar" height="122" theme_color="false" no_corner_radius="true">
         <verticalLayout margin="6">
-          <progressBar show_play_time="true" play_time_both_side="true" height="24" margin-left="12" margin-right="12"/>
-          <horizontalLayout height="72">
+          <progressBar show_play_time="true" play_time_both_side="true" height="28" margin-left="12" margin-right="12"/>
+          <horizontalLayout height="78">
             <horizontalLayout width="33%">
-              <button key="myGroups" width="40" height="40" iconSize="24" margin="4"/>
+              <button key="myGroups" width="44" height="44" iconSize="24" margin="4"/>
               <placeHolder/>
             </horizontalLayout>
             <horizontalLayout width="34%">
               <placeHolder/>
-              <button key="previous" width="48" height="48" iconSize="24" margin="4"/>
-              <button key="playPause" width="64" height="64" iconSize="32" force_round_background="true" margin="4"/>
-              <button key="next" width="48" height="48" iconSize="24" margin="4"/>
+              <button key="previous" width="52" height="52" iconSize="24" margin="4"/>
+              <button key="playPause" width="64" height="64" iconSize="30" force_round_background="true" margin="4"/>
+              <button key="next" width="52" height="52" iconSize="24" margin="4"/>
               <placeHolder/>
             </horizontalLayout>
             <horizontalLayout>
               <placeHolder/>
-              <volume show_text="false" width="40" height="40" iconSize="24" margin="4"/>
-              <button key="repeatMode" width="40" height="40" iconSize="24" margin="4"/>
-              <button key="showPlaylist" width="40" height="40" iconSize="24" margin="4"/>
+              <volume show_text="false" width="44" height="44" iconSize="24" margin="4"/>
+              <button key="repeatMode" width="44" height="44" iconSize="24" margin="4"/>
+              <button key="showPlaylist" width="44" height="44" iconSize="24" margin="4"/>
             </horizontalLayout>
           </horizontalLayout>
         </verticalLayout>
-      </verticalLayout>
+      </rectangle>
     </verticalLayout>
   </ui>
   
   <ui type="narrow">
-    <verticalLayout margin="12">
-      <rectangle height="112" margin-bottom="8" theme_color="false">
+    <verticalLayout>
+      <rectangle height="112" margin-left="12" margin-right="12" margin-top="12" margin-bottom="8" theme_color="false">
         <verticalLayout margin="16">
           <text type="title" style="scroll" height="34" alignment="center" font_size="13" color_style="emphasis1"/>
           <text type="artist" style="scroll" height="26" alignment="center" font_size="10"/>
           <text type="album" style="scroll" height="24" alignment="center" font_size="9" color_style="emphasis2"/>
         </verticalLayout>
       </rectangle>
-      <rectangle margin-bottom="8" theme_color="false">
+      <rectangle margin-left="12" margin-right="12" margin-bottom="8" theme_color="false">
         <lyrics margin="16" no_background="true"/>
       </rectangle>
-      <rectangle id="simpleControlBar" height="104" theme_color="false">
+      <rectangle id="simpleControlBar" height="110" theme_color="false" no_corner_radius="true">
         <verticalLayout margin="4">
-          <progressBar show_play_time="true" play_time_both_side="true" height="22" margin-left="8" margin-right="8"/>
-          <horizontalLayout height="64">
+          <progressBar show_play_time="true" play_time_both_side="true" height="26" margin-left="8" margin-right="8"/>
+          <horizontalLayout height="68">
             <horizontalLayout width="33%">
               <button key="myGroups" width="32" height="32" iconSize="20" margin="3"/>
               <placeHolder/>
             </horizontalLayout>
             <horizontalLayout width="34%">
               <placeHolder/>
-              <button key="previous" width="44" height="44" iconSize="20" margin="3"/>
+              <button key="previous" width="48" height="48" iconSize="20" margin="3"/>
               <button key="playPause" width="56" height="56" iconSize="24" force_round_background="true" margin="3"/>
-              <button key="next" width="44" height="44" iconSize="20" margin="3"/>
+              <button key="next" width="48" height="48" iconSize="20" margin="3"/>
               <placeHolder/>
             </horizontalLayout>
             <horizontalLayout>
@@ -84,18 +84,18 @@
   </ui>
   
   <ui type="small">
-    <verticalLayout margin="12">
-      <rectangle height="82" margin-bottom="8" theme_color="false">
+    <verticalLayout>
+      <rectangle height="82" margin-left="12" margin-right="12" margin-top="12" margin-bottom="8" theme_color="false">
         <verticalLayout margin="12">
           <text type="title" style="scroll" height="30" alignment="center" font_size="12" color_style="emphasis1"/>
           <text type="artist" style="scroll" height="24" alignment="center" font_size="9"/>
         </verticalLayout>
       </rectangle>
       <lyrics margin-left="12" margin-right="12" margin-bottom="8"/>
-      <rectangle id="simpleControlBar" height="96" theme_color="false">
+      <rectangle id="simpleControlBar" height="102" theme_color="false" no_corner_radius="true">
         <verticalLayout margin="4">
-          <progressBar show_play_time="true" play_time_both_side="true" height="20" margin-left="6" margin-right="6"/>
-          <horizontalLayout height="60">
+          <progressBar show_play_time="true" play_time_both_side="true" height="24" margin-left="6" margin-right="6"/>
+          <horizontalLayout height="64">
             <horizontalLayout width="33%">
               <button key="myGroups" width="30" height="30" iconSize="20" margin="2"/>
               <placeHolder/>
@@ -103,7 +103,7 @@
             <horizontalLayout width="34%">
               <placeHolder/>
               <button key="previous" width="40" height="40" iconSize="20" margin="2"/>
-              <button key="playPause" width="52" height="52" iconSize="24" force_round_background="true" margin="2"/>
+              <button key="playPause" width="50" height="50" iconSize="22" force_round_background="true" margin="2"/>
               <button key="next" width="40" height="40" iconSize="20" margin="2"/>
               <placeHolder/>
             </horizontalLayout>

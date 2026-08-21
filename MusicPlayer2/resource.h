@@ -242,6 +242,9 @@
 #define IDC_MY_GROUP_ADD_FOLDER         1402
 #define IDC_MY_GROUP_NEW_BUTTON         1403
 #define IDC_MY_GROUP_EMPTY_STATE        1404
+#define IDC_MY_GROUP_EMPTY_ICON         1405
+#define IDC_MY_GROUP_EMPTY_DESC         1406
+#define IDC_MY_GROUP_EMPTY_ADD          1407
 #define IDI_UP_D                        592
 #define IDR_MINI_UI0                    593
 #define IDI_ARTIST                      594
